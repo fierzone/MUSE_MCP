@@ -1,0 +1,29 @@
+{
+  // Example: use Muse as an MCP server AND as an OpenAI-compatible model in opencode.
+  // Merge these blocks into your ~/.config/opencode/opencode.jsonc and use ABSOLUTE paths.
+  "$schema": "https://opencode.ai/config.json",
+
+  "mcp": {
+    "muse": {
+      "type": "local",
+      "command": ["node", "/absolute/path/to/Muse-Chat-MCP/muse-server.mjs"],
+      "enabled": true,
+      "timeout": 300000
+    }
+  },
+
+  "provider": {
+    "muse-local": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Muse (local shim)",
+      "options": {
+        "baseURL": "http://127.0.0.1:8787/v1",
+        "apiKey": "muse-local"
+      },
+      "models": {
+        "muse-spark-1.3": { "name": "Muse Spark 1.3" },
+        "muse": { "name": "Muse" }
+      }
+    }
+  }
+}

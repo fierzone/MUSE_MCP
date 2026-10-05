@@ -1,0 +1,10 @@
+# Normalize text to LF in the repo for cross-platform consistency.
+* text=auto eol=lf
+
+# Never normalize binaries.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.har binary

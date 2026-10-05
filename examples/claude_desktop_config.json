@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "muse": {
+      "command": "node",
+      "args": ["/absolute/path/to/Muse-Chat-MCP/muse-server.mjs"],
+      "env": {
+        "MUSE_PROFILE_DIR": "/absolute/path/to/Muse-Chat-MCP/.muse-profile"
+      }
+    }
+  }
+}

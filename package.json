@@ -1,0 +1,48 @@
+{
+  "name": "muse-chat-mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "MCP server + OpenAI-compatible HTTP shim that let any MCP or OpenAI client use Meta Muse (muse.ai, the \"Hatch\" agent) by driving your real, logged-in Chrome.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "muse",
+    "meta",
+    "hatch",
+    "playwright",
+    "openai",
+    "openai-compatible",
+    "llm",
+    "browser-automation",
+    "claude-desktop",
+    "opencode"
+  ],
+  "license": "MIT",
+  "author": "fierzone",
+  "homepage": "https://github.com/fierzone/MUSE_MCP#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fierzone/MUSE_MCP.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fierzone/MUSE_MCP/issues"
+  },
+  "bin": {
+    "muse-mcp": "muse-server.mjs",
+    "muse": "muse-cli.mjs"
+  },
+  "scripts": {
+    "start": "node muse-server.mjs",
+    "muse": "node muse-cli.mjs",
+    "selftest": "node muse-server.mjs --self-test",
+    "dump": "node muse-server.mjs --dump-dom"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.31.0",
+    "playwright-core": "^1.63.0",
+    "zod": "^3.25.0"
+  }
+}

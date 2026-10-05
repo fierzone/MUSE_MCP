@@ -1,0 +1,19 @@
+# deps
+node_modules/
+package-lock.json
+
+# the dedicated Chrome profile that holds YOUR login — never commit this
+.muse-profile/
+*.muse-profile/
+
+# captures / secrets — never commit
+*.har
+.env
+.env.*
+*.log
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
