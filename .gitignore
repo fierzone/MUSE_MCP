@@ -12,6 +12,9 @@ package-lock.json
 .env.*
 *.log
 
+# outputs
+downloads/
+
 # os / editor
 .DS_Store
 Thumbs.db

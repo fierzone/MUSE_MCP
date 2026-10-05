@@ -9,54 +9,54 @@
   <img src="https://img.shields.io/badge/Theme-Black_%26_Red-ff2e4c.svg?style=for-the-badge&color=ff2e4c&labelColor=0d0d11" alt="Theme"/>
 </p>
 
-### **Use Meta Muse — the [muse.ai](https://muse.ai) "Hatch" agent — from any MCP client or any OpenAI-compatible client, with your own account and quota.**
+### **Sử dụng Meta Muse — agent "Hatch" của [muse.ai](https://muse.ai) — từ bất kỳ MCP client hoặc OpenAI-compatible client nào, bằng chính tài khoản và quota của bạn.**
 
 </div>
 
 ---
 
-Muse has no public API: its chat is an **encrypted WebSocket** (`wss://hatch.metaaivm.com/v1/noise`, an X25519 + HKDF + AES‑GCM + Ed25519 *Noise* transport). So instead of re‑implementing the protocol, this project **drives your real, logged‑in Chrome** with Playwright: the app performs all the crypto itself, and we type into the composer and read the rendered reply.
+Muse không có API công khai: giao diện chat của nó sử dụng **WebSocket mã hóa** (`wss://hatch.metaaivm.com/v1/noise`, giao thức *Noise* gồm X25519 + HKDF + AES‑GCM + Ed25519). Vì vậy, thay vì phải cài đặt lại giao thức phức tạp này, dự án **điều khiển trình duyệt Chrome thật đang đăng nhập của bạn** thông qua Playwright: ứng dụng web tự xử lý tất cả phần mã hóa, còn dự án sẽ nhập dữ liệu vào ô soạn thảo (composer) và đọc câu trả lời render ra.
 
-That gives you two front doors:
+Điều này mang lại cho bạn hai cổng kết nối (front doors):
 
-| Front door | What it is | Use it from |
+| Cổng kết nối | Bản chất | Dùng cho |
 | --- | --- | --- |
-| **MCP server** (stdio) | 7 tools: `muse_status`, `muse_login`, `muse_new_chat`, `muse_chat`, `muse_read_last`, `muse_dump_dom`, `muse_close` | Claude Desktop, opencode, Cursor, any MCP host |
-| **OpenAI-compatible shim** (HTTP) | `GET /v1/models`, `POST /v1/chat/completions` (stream + non-stream, tool calling) | any OpenAI SDK / `@ai-sdk/openai-compatible` provider |
+| **MCP server** (stdio) | 7 công cụ: `muse_status`, `muse_login`, `muse_new_chat`, `muse_chat`, `muse_read_last`, `muse_dump_dom`, `muse_close` | Claude Desktop, opencode, Cursor, hoặc bất kỳ MCP host nào |
+| **OpenAI-compatible shim** (HTTP) | `GET /v1/models`, `POST /v1/chat/completions` (stream + non-stream, gọi tool) | Bất kỳ OpenAI SDK / provider `@ai-sdk/openai-compatible` nào |
 
-Plus a tiny **CLI** (`muse-cli.mjs`) for one-shot generation from scripts.
+Đi kèm một **CLI** nhỏ gọn (`muse-cli.mjs`) giúp sinh phản hồi nhanh từ script.
 
 > [!IMPORTANT]
-> This drives **your** browser and **your** Muse account. It ships with **no** credentials, no Chrome profile, and no captured traffic — you sign in to your own Meta account on first run. See [Disclaimer](#disclaimer).
+> Dự án này điều khiển trình duyệt **của bạn** và tài khoản Muse **của bạn**. Dự án **không** chứa thông tin đăng nhập, profile Chrome hay dữ liệu lưu vết nào — bạn tự đăng nhập vào tài khoản Meta của mình ở lần chạy đầu tiên. Xem thêm phần [Tuyên bố miễn trừ trách nhiệm](#tuyên-bố-miễn-trừ-trách-nhiệm).
 
 ---
 
-## Features
+## Feature / Tính năng nổi bật
 
-- **MCP tools** over stdio — drop-in for Claude Desktop / opencode / any MCP host.
-- **OpenAI-compatible HTTP shim** with **real streaming** (SSE), correct `finish_reason`, and `/v1` error objects.
-- **Prompt-injected tool calling** — expose OpenAI `tools` to Muse and get `tool_calls` back.
-- **Attachments** — send images/video with a prompt (MCP `files`, OpenAI `image_url` parts, CLI `-f`).
-- **Sessions & media** — list/open/read/send in any Muse chat, and pull out the images/videos Muse generates (links + download).
-- **Muse Manual** — a living guide to Muse's video/image/content capabilities at [`manual/MUSE_MANUAL.md`](manual/MUSE_MANUAL.md), regenerated with `node manual/interview.mjs`.
-- **Reuses your existing login** via a dedicated Chrome profile, or attaches to a Chrome you already run with `--remote-debugging-port=9222`.
-- **Never kills your browser**: when attached over CDP it only *disconnects* on close.
-- **Resilient**: if the profile is locked by a running Chrome, it auto-attaches over CDP instead of failing.
-- **Correct streaming**: only stable, monotonic text is emitted, so a rewrite mid-answer never duplicates.
-- No browser download — it uses your **installed** Chrome via [`playwright-core`](https://www.npmjs.com/package/playwright-core).
-
----
-
-## Requirements
-
-- **Node.js ≥ 18** (tested on v24).
-- **Google Chrome** (or Edge) installed.
-- A **Meta account** with access to Muse.
-- Windows / macOS / Linux (paths in the examples are Windows; adjust for your OS).
+- **MCP tools qua stdio** — cắm vào sử dụng ngay cho Claude Desktop / opencode / bất kỳ MCP host nào.
+- **OpenAI-compatible HTTP shim** hỗ trợ **streaming thực sự** (SSE), đúng `finish_reason` và đối tượng lỗi `/v1` chuẩn.
+- **Gọi tool qua Prompt Injection** — truyền các `tools` kiểu OpenAI cho Muse và nhận lại `tool_calls`.
+- **Tệp đính kèm (Attachments)** — gửi ảnh/video cùng với prompt (MCP `files`, OpenAI `image_url`, CLI `-f`).
+- **Phiên làm việc & Media (Sessions & media)** — liệt kê/mở/đọc/gửi tin nhắn trong bất kỳ chat Muse nào, đồng thời trích xuất ảnh/video do Muse tạo ra (link + tải về).
+- **Muse Manual (Sổ tay Muse)** — cẩm nang sống về khả năng tạo video/ảnh/nội dung của Muse tại [`manual/MUSE_MANUAL.md`](manual/MUSE_MANUAL.md), tự cập nhật với `node manual/interview.mjs`.
+- **Tái sử dụng đăng nhập có sẵn** qua một profile Chrome riêng biệt, hoặc kết nối tới Chrome đang chạy với `--remote-debugging-port=9222`.
+- **Không ngắt trình duyệt người dùng**: khi kết nối qua CDP, tool chỉ *ngắt kết nối* khi đóng chứ không tắt Chrome.
+- **Khả năng tự phục hồi**: nếu profile bị khóa do Chrome đang mở, tool sẽ tự động kết nối qua CDP thay vì báo lỗi.
+- **Streaming chuẩn xác**: chỉ phát ra văn bản ổn định, liên tục (monotonic), tránh lặp lại văn bản khi Muse tự chỉnh sửa câu trả lời mid-stream.
+- Không cần tải thêm trình duyệt — sử dụng Chrome **đã cài đặt sẵn** của bạn qua [`playwright-core`](https://www.npmjs.com/package/playwright-core).
 
 ---
 
-## Install
+## Yêu cầu hệ thống
+
+- **Node.js ≥ 18** (đã test trên v24).
+- **Google Chrome** (hoặc Edge) đã cài đặt.
+- **Tài khoản Meta** có quyền truy cập Muse.
+- Windows / macOS / Linux (đường dẫn ví dụ dùng trên Windows; điều chỉnh cho OS của bạn).
+
+---
+
+## Cài đặt
 
 ```bash
 git clone https://github.com/fierzone/MUSE_MCP.git
@@ -64,30 +64,43 @@ cd Muse-Chat-MCP
 npm install
 ```
 
-`npm install` only pulls `playwright-core` (a library) — it does **not** download a browser.
+`npm install` chỉ tải `playwright-core` (thư viện) — **không** tải xuống trình duyệt mới.
 
-## First run (log in once)
+## Khởi chạy lần đầu (Đăng nhập 1 lần)
 
 ```bash
-npm run selftest          # launches Chrome, prints login/browser state, then closes
+npm run selftest          # mở Chrome, in trạng thái login/trình duyệt, sau đó đóng lại
 ```
 
-A Chrome window opens to `https://muse.ai`. Sign in with your Meta account. The session is stored in a dedicated profile (`.muse-profile/`, git-ignored) and reused afterwards. When `muse_status` reports `"loggedIn": true`, you're ready.
+Một cửa sổ Chrome sẽ mở ra trang `https://muse.ai`. Hãy đăng nhập bằng tài khoản Meta của bạn. Phiên đăng nhập được lưu trong profile riêng (`.muse-profile/`, đã bị git-ignore) và sẽ được tái sử dụng cho các lần sau. Khi `muse_status` báo `"loggedIn": true`, bạn đã sẵn sàng.
 
 ---
 
-## Use it as an MCP server
+## Các lệnh chạy dự án (Running the Project)
+
+| Tác vụ / Task | Lệnh thực thi / Command | Mô tả / Description |
+| --- | --- | --- |
+| **Mở Chrome Debug Port** | `.\start-chrome-debug.bat` *(hoặc `.\start-chrome-debug.ps1`)* | Chạy Chrome với `--remote-debugging-port=9222` để giữ login và tránh khóa profile. |
+| **Kiểm tra đăng nhập & Selftest** | `npm run selftest` | Khởi chạy Chrome, kiểm tra trạng thái login/composer, hiển thị thông số rồi đóng lại. |
+| **Chạy MCP Server + OpenAI Shim** | `npm start` *(hoặc `node muse-server.mjs`)* | Chạy MCP server (stdio) đồng thời lắng nghe HTTP OpenAI Shim tại port 8787. |
+| **Chạy HTTP Shim độc lập** | `node muse-server.mjs --serve-only` | Chỉ chạy HTTP OpenAI Shim (port 8787), không lắng nghe MCP stdio. |
+| **Dump DOM Debugging** | `npm run dump` *(hoặc `node muse-server.mjs --dump-dom`)* | Xuất cấu trúc DOM HTML và đếm phần tử để debug selector. |
+| **Chạy CLI một lượt** | `npm run muse -- "prompt"` *(hoặc `node muse-cli.mjs "prompt"`)* | Gửi prompt trực tiếp từ CLI và nhận câu trả lời stream ra terminal. |
+
+---
+
+## Sử dụng như một MCP server
 
 ### opencode
 
-Add to `~/.config/opencode/opencode.jsonc`:
+Thêm vào `~/.config/opencode/opencode.jsonc`:
 
 ```jsonc
 {
   "mcp": {
     "muse": {
       "type": "local",
-      "command": ["node", "/absolute/path/to/Muse-Chat-MCP/muse-server.mjs"],
+      "command": ["node", "/duong/dan/tuyet/doi/den/Muse-Chat-MCP/muse-server.mjs"],
       "enabled": true,
       "timeout": 300000
     }
@@ -95,115 +108,110 @@ Add to `~/.config/opencode/opencode.jsonc`:
 }
 ```
 
-> The `timeout` is the **tool-listing** timeout at startup, not per-call — long `muse_chat` calls are fine.
+> Tham số `timeout` là thời gian chờ **liệt kê công cụ** lúc khởi động, không phải theo từng cuộc gọi — các cuộc gọi `muse_chat` kéo dài vẫn hoạt động bình thường.
 
 ### Claude Desktop
 
-Add to `claude_desktop_config.json`:
+Thêm vào `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "muse": {
       "command": "node",
-      "args": ["/absolute/path/to/Muse-Chat-MCP/muse-server.mjs"],
-      "env": { "MUSE_PROFILE_DIR": "/absolute/path/to/Muse-Chat-MCP/.muse-profile" }
+      "args": ["/duong/dan/tuyet/doi/den/Muse-Chat-MCP/muse-server.mjs"],
+      "env": { "MUSE_PROFILE_DIR": "/duong/dan/tuyet/doi/den/Muse-Chat-MCP/.muse-profile" }
     }
   }
 }
 ```
 
-### MCP tools
+### Các công cụ MCP (MCP Tools)
 
-| Tool | Arguments | Returns |
+| Tool | Đối số (Arguments) | Trả về (Returns) |
 | --- | --- | --- |
-| `muse_status` | – | browser / login / composer state |
-| `muse_login` | `timeout_sec?` | waits for Meta sign-in to complete |
-| `muse_new_chat` | – | navigates to the home composer |
+| `muse_status` | – | Trạng thái trình duyệt / đăng nhập / composer |
+| `muse_login` | `timeout_sec?` | Chờ quá trình đăng nhập Meta hoàn tất |
+| `muse_new_chat` | – | Điều hướng về trang composer chính (trang chủ) |
 | `muse_chat` | `prompt`, `timeout_sec?`, `new_thread?`, `files?`, `chat?` | `{ reply, messages, threadUrl, elapsedMs, … }` |
-| `muse_read_last` | – | latest assistant message (no send) |
-| `muse_chats` | `query?` | list chats (Main chat / Channels / Side chats), optional title filter |
-| `muse_open_chat` | `target` | open a chat (title, index, URL, or id) |
-| `muse_read_chat` | `chat?`, `max?` | messages of a chat (all roles, with media links) |
-| `muse_media` | `chat?`, `download?`, `dir?` | image/video/attachment links from a chat (optionally downloaded) |
-| `muse_dump_dom` | `max_chars?` | element counts + transcript HTML (selector debugging) |
-| `muse_close` | – | closes the browser (disconnect-only if CDP-attached) |
+| `muse_read_last` | – | Tin nhắn mới nhất của assistant (không gửi câu mới) |
+| `muse_chats` | `query?` | Danh sách chat (Main chat / Channels / Side chats), lọc tiêu đề tùy chọn |
+| `muse_open_chat` | `target` | Mở một đoạn chat (bằng tiêu đề, chỉ số index, URL hoặc id) |
+| `muse_read_chat` | `chat?`, `max?` | Tin nhắn trong chat (tất cả vai trò, kèm link media) |
+| `muse_media` | `chat?`, `download?`, `dir?` | Link ảnh/video/tệp đính kèm từ chat (tùy chọn tải về) |
+| `muse_dump_dom` | `max_chars?` | Số lượng phần tử + HTML đoạn chat (dùng để debug selector) |
+| `muse_close` | – | Đóng trình duyệt (chỉ ngắt kết nối nếu đính kèm qua CDP) |
 
-Typical flow: `muse_status` → (if needed `muse_login`) → `muse_chat { prompt }`.
+Quy trình thông thường: `muse_status` → (nếu cần `muse_login`) → `muse_chat { prompt }`.
 
-### Attachments (images & video)
+### Tệp đính kèm (Ảnh & Video)
 
-`muse_chat` accepts a `files` array — absolute paths or URLs — and attaches them to the
-message before sending:
+`muse_chat` nhận một mảng `files` — đường dẫn tuyệt đối hoặc URL — và đính kèm vào tin nhắn trước khi gửi:
 
 ```jsonc
-{ "name": "muse_chat", "arguments": { "prompt": "What is in this image?", "files": ["C:\\path\\frame.jpg", "https://host/clip.mp4"] } }
+{ "name": "muse_chat", "arguments": { "prompt": "Có gì trong bức ảnh này?", "files": ["C:\\path\\frame.jpg", "https://host/clip.mp4"] } }
 ```
 
-Muse accepts images, video and documents (the composer's file input has **no** `accept`
-filter). Files are set directly on the hidden composer input — no OS file dialog.
+Muse chấp nhận ảnh, video và tài liệu (file input của composer **không** chặn bộ lọc `accept`). Các file được đặt trực tiếp vào file input ẩn của composer mà không hiện hộp thoại hệ thống OS.
 
-### Sessions (multiple chats)
+### Phiên làm việc (Nhiều đoạn chat)
 
-Muse has a **Main chat** plus **Channels** and **Side chats** (each a `muse.ai/thread/<id>`).
-List them, then target any one for reading or sending:
+Muse có một **Main chat** chính cùng với các **Channels** và **Side chats** (mỗi cuộc trò chuyện có dạng `muse.ai/thread/<id>`). Bạn có thể liệt kê và chỉ định bất kỳ chat nào để đọc hoặc gửi tin:
 
-- **MCP** — `muse_chats`, `muse_open_chat { target }`, `muse_read_chat { chat?, max? }`, and `muse_chat { …, chat }` where the target is a title, index, thread URL, or thread id.
-- **HTTP** — `GET /v1/muse/chats` (list) and `GET /v1/muse/chat?target=<name|index|url>&max=100` (read); send with header `x-muse-chat: <name|index|url>` (or body `chat`).
+- **MCP** — `muse_chats`, `muse_open_chat { target }`, `muse_read_chat { chat?, max? }`, và `muse_chat { …, chat }` trong đó target là tiêu đề, index, thread URL hoặc thread id.
+- **HTTP** — `GET /v1/muse/chats` (danh sách) và `GET /v1/muse/chat?target=<name|index|url>&max=100` (đọc); gửi tin kèm header `x-muse-chat: <name|index|url>` (hoặc body `chat`).
 - **CLI** — `--list-chats`, `--read [<chat>]`, `--chat <chat>`.
 
-> Muse can generate images/video **inside a chat** (it replies with share links) — use a
-> session read or the media tools to retrieve them.
+> Muse có thể tạo ra ảnh/video **trực tiếp trong đoạn chat** (nó phản hồi kèm link chia sẻ) — dùng công cụ đọc session hoặc công cụ media để lấy dữ liệu.
 
-### Media (generated images & video)
+### Media (Ảnh & Video do Muse tạo)
 
-When asked, Muse makes media and replies with a share link (`https://muse.ai/files/<…>/….mp4|.png`).
-Extract and download them:
+Khi được yêu cầu, Muse tạo ra media và phản hồi bằng một link chia sẻ (`https://muse.ai/files/<…>/….mp4|.png`). Trích xuất và tải xuống:
 
 - **MCP** — `muse_media { chat?, download?, dir? }`.
 - **HTTP** — `GET /v1/muse/media?target=<chat>&download=1&dir=<dir>`.
 - **CLI** — `--media [<chat>] [--download] [--dir <dir>]`.
 
-Links are public (anyone with the link can view) but expire (~2 days) — download to keep them.
+Các liên kết là công khai (bất kỳ ai có link đều xem được) nhưng sẽ hết hạn (~2 ngày) — nên tải về để lưu trữ lâu dài.
 
 ---
 
-## Use the OpenAI-compatible shim
+## Sử dụng OpenAI-compatible Shim
 
-`muse-server.mjs` starts the shim automatically on **port 8787** (disable with `MUSE_SHIM_PORT=0`). Run it stand-alone (HTTP only, no MCP) with `node muse-server.mjs --serve-only`.
+`muse-server.mjs` tự động khởi chạy shim trên **cổng 8787** (tắt bằng cách đặt `MUSE_SHIM_PORT=0`). Nếu chỉ muốn chạy HTTP server mà không dùng MCP, hãy dùng `node muse-server.mjs --serve-only`.
 
-| Route | Purpose |
+| Route | Mục đích |
 | --- | --- |
-| `GET /v1/models` | model list |
-| `POST /v1/chat/completions` | chat completions (stream + non-stream, tools) |
-| `GET /health` | browser / login state |
-| `GET /v1/muse/chats` | list Muse chats |
-| `GET /v1/muse/chat?target=…` | read a chat (optionally opening it first) |
-| `GET /v1/muse/media?target=…` | media links in a chat (add `download=1` to save) |
+| `GET /v1/models` | Danh sách model |
+| `POST /v1/chat/completions` | Hoàn thành đoạn chat (stream + non-stream, tools) |
+| `GET /health` | Trạng thái trình duyệt / đăng nhập |
+| `GET /v1/muse/chats` | Danh sách đoạn chat Muse |
+| `GET /v1/muse/chat?target=…` | Đọc tin nhắn cuộc trò chuyện (tùy chọn mở trước) |
+| `GET /v1/muse/media?target=…` | Link media trong cuộc trò chuyện (thêm `download=1` để tải) |
 
 ```bash
 curl http://127.0.0.1:8787/v1/models
 
 curl http://127.0.0.1:8787/v1/chat/completions \
   -H "content-type: application/json" \
-  -d '{"model":"muse-spark-1.3","messages":[{"role":"user","content":"Summarize what Muse is in 2 sentences."}]}'
+  -d '{"model":"muse-spark-1.3","messages":[{"role":"user","content":"Tóm tắt Muse là gì trong 2 câu."}]}'
 ```
 
-### Any OpenAI client
+### Sử dụng với SDK OpenAI bất kỳ (Python/JS)
 
 ```python
 from openai import OpenAI
 client = OpenAI(base_url="http://127.0.0.1:8787/v1", api_key="muse-local")
 r = client.chat.completions.create(
     model="muse-spark-1.3",
-    messages=[{"role": "user", "content": "Write a haiku about browsers."}],
+    messages=[{"role": "user", "content": "Viết một bài thơ haiku về trình duyệt."}],
     stream=True,
 )
 for chunk in r:
     print(chunk.choices[0].delta.content or "", end="")
 ```
 
-### opencode provider
+### Cấu hình opencode provider
 
 ```jsonc
 "provider": {
@@ -219,37 +227,103 @@ for chunk in r:
 }
 ```
 
-### Shim behavior
+### Cơ chế hoạt động của Shim
 
-- **Real streaming** — DOM text is re-emitted as OpenAI deltas. Only text that is a *monotonic extension* and has been stable for `MUSE_STREAM_QUIET_MS` (default 600 ms) is emitted; the remainder is flushed at the end. Each stream ends with exactly one `finish_reason`, then `[DONE]`.
-- **Tools** — prompt-injected. Tool schemas are embedded with a *decision-only* rule ("do not execute"), so Muse returns `{"tool_calls":[{"name","arguments"}]}` instead of trying to actually run the action. Parsed into OpenAI `tool_calls` (`finish_reason: "tool_calls"`). Best-effort, not a native function-calling API.
-- **Attachments** — send images/video via OpenAI multimodal content (`{"type":"image_url","image_url":{"url":…}}`) or a top-level `files` array (local paths / URLs / data-URIs). Muse sees them like a normal chat attachment.
-- **Plain message** — the shim sends the latest user message **verbatim**: no `### USER/### ASSISTANT` role markers and no "continue the conversation" wrapper. Muse flags roleplay-style wrappers as prompt-injection and refuses them, so the bridge never adds any. Prior context comes from Muse's own thread.
-- **Sessions** — target a chat with header `x-muse-chat: <title|index|url>` (or body `chat`); read chats via `GET /v1/muse/chats` and `GET /v1/muse/chat`.
-- **Headers** — `x-muse-thread: new` (navigate to `/` first), `x-muse-timeout-ms`.
+- **Real streaming** — Văn bản DOM được phát lại dưới dạng các delta của OpenAI. Chỉ văn bản dạng *mở rộng liên tục (monotonic extension)* và ổn định trong khoảng `MUSE_STREAM_QUIET_MS` (mặc định 600 ms) mới được phát; phần còn lại sẽ được đẩy ra ở cuối. Mỗi stream kết thúc với chính xác 1 `finish_reason`, sau đó là `[DONE]`.
+- **Tools** — Gọi công cụ qua prompt-injection. Schema của tool được nhúng kèm quy tắc *chỉ ra quyết định* ("không tự thực thi"), vì vậy Muse trả về `{"tool_calls":[{"name","arguments"}]}` thay vì tự chạy hành động. Trích xuất thành `tool_calls` của OpenAI (`finish_reason: "tool_calls"`). Đây là giải pháp dạng best-effort, không phải native API.
+- **Tệp đính kèm** — Gửi ảnh/video qua nội dung đa phương thức OpenAI (`{"type":"image_url","image_url":{"url":…}}`) hoặc mảng `files` ở cấp cao nhất (đường dẫn cục bộ / URL / data-URI). Muse xem chúng như tệp đính kèm chat bình thường.
+- **Tin nhắn nguyên bản** — Shim gửi tin nhắn mới nhất của người dùng **nguyên văn**: không thêm nhãn vai trò `### USER/### ASSISTANT` và không thêm wrapper "tiếp tục cuộc trò chuyện". Muse sẽ coi các wrapper dạng roleplay là prompt-injection và từ chối, nên bridge không bao giờ thêm vào. Ngữ cảnh trước đó sẽ lấy từ chính thread của Muse.
+- **Phiên làm việc** — Định vị cuộc trò chuyện qua header `x-muse-chat: <title|index|url>` (hoặc body `chat`); đọc đoạn chat qua `GET /v1/muse/chats` và `GET /v1/muse/chat`.
+- **Headers bổ sung** — `x-muse-thread: new` (điều hướng đến `/` trước), `x-muse-timeout-ms`.
 
 ---
 
-## Use the CLI
+## Sử dụng CLI
 
-`muse-cli.mjs` talks to the shim (reusing a running one, or auto-starting `--serve-only` and shutting it down after).
+`muse-cli.mjs` giao tiếp với shim (tái sử dụng shim đang chạy, hoặc tự động khởi động `--serve-only` rồi tắt sau khi xong).
 
 ```bash
-node muse-cli.mjs "Explain what a B-tree is in 2 sentences."          # streams to stdout
-node muse-cli.mjs --no-stream -s "Output ONLY raw code." "Write ..."   # exact final code
-node muse-cli.mjs -f ./frame.jpg "Write a Facebook caption for this image."  # attach image/video
-node muse-cli.mjs --list-chats                                        # list Muse chats
-node muse-cli.mjs --read "Video creation capability"                  # read a chat
-node muse-cli.mjs --chat "Reply with pong" "hi"                       # send into a chat
-echo "<file>" | node muse-cli.mjs -s "Review this file"                # stdin prompt
-npm run muse -- "hello"                                                # via package.json
+node muse-cli.mjs "Giải thích B-tree là gì trong 2 câu."                    # stream ra stdout
+node muse-cli.mjs --no-stream -s "Chỉ xuất mã nguồn thô." "Viết ..."        # lấy mã nguồn cuối cùng
+node muse-cli.mjs -f ./frame.jpg "Viết caption Facebook cho ảnh này."       # đính kèm ảnh/video
+node muse-cli.mjs --list-chats                                            # danh sách chat Muse
+node muse-cli.mjs --read "Khả năng tạo video"                              # đọc tin trong 1 chat
+node muse-cli.mjs --chat "Trả lời pong" "hi"                              # gửi tin vào 1 chat
+echo "<file>" | node muse-cli.mjs -s "Đánh giá file này"                   # đọc prompt từ stdin
+npm run muse -- "hello"                                                   # qua package.json
 ```
 
-Options: `-s/--system`, `-m/--model`, `-t/--timeout`, `-f/--file <path|url>` (repeatable), `--chat <name|index|url>`, `--list-chats`, `--query <text>`, `--read [<chat>]`, `--media [<chat>]`, `--download`, `--dir <dir>`, `--new-thread`, `--no-stream`, `--json`, `--base` (or env `MUSE_SHIM_URL`).
+Tùy chọn: `-s/--system`, `-m/--model`, `-t/--timeout`, `-f/--file <path|url>` (có thể lặp lại), `--chat <name|index|url>`, `--list-chats`, `--query <text>`, `--read [<chat>]`, `--media [<chat>]`, `--download`, `--dir <dir>`, `--new-thread`, `--no-stream`, `--json`, `--base` (hoặc env `MUSE_SHIM_URL`).
 
 ---
 
-## Architecture
+## Video Generation Workflow & Commands (Lệnh tạo Video & QC)
+
+Muse (`muse.ai` / Hatch) hỗ trợ tạo video 9:16 dọc (text-to-video, image-to-video). Dưới đây là quy trình và các lệnh để điều khiển tool tạo video, tải media và kiểm tra chất lượng:
+
+### 1. Tạo Video từ CLI (Command-Line)
+
+- **Tạo video từ mô tả chữ (Text-to-Video)**:
+  ```bash
+  node muse-cli.mjs "Tạo video 9:16 quay cảnh thành phố cyberpunk ban đêm có mưa rơi và đèn neon"
+  ```
+- **Tạo video từ ảnh mẫu (Image-to-Video / Ref Image)**:
+  ```bash
+  node muse-cli.mjs -f ./ref_character.jpg "Tạo video 9:16 chuyển động nhân vật trong ảnh đang bước đi"
+  ```
+- **Tạo video trong 1 chat session cụ thể**:
+  ```bash
+  node muse-cli.mjs --chat "Video Creation" "Tạo video 9:16 mô tả sản phẩm phong cách cinematic"
+  ```
+
+### 2. Tạo Video qua OpenAI-compatible API Shim (HTTP)
+
+```bash
+curl http://127.0.0.1:8787/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "muse-spark-1.3",
+    "messages": [
+      {"role": "user", "content": "Tạo video 9:16 dọc quảng cáo đồ uống mùa hè"}
+    ]
+  }'
+```
+
+### 3. Trích xuất & Tải Video đã tạo (Download Media)
+
+Khi Muse tạo video xong (trả về link share `https://muse.ai/files/...mp4`), sử dụng các lệnh sau để liệt kê và tải về:
+
+- **Liệt kê file media trong chat**:
+  ```bash
+  node muse-cli.mjs --media
+  ```
+- **Tải tất cả video/ảnh trong chat về thư mục chỉ định**:
+  ```bash
+  node muse-cli.mjs --media --download --dir ./downloads
+  ```
+- **Sử dụng MCP Tool**:
+  Gọi tool `muse_media` với tham số `{"download": true, "dir": "./downloads"}`.
+
+### 4. Kiểm tra QC kỹ thuật Video (Video Technical QC)
+
+Công cụ trích xuất thông số kỹ thuật (độ phân giải 9:16, FPS, codec) và tự động chụp 5 frame ảnh đại diện để kiểm duyệt:
+
+```bash
+node manual/qc-video.mjs ./downloads/sample_video.mp4 ./downloads/qc_frames
+```
+
+- Output: JSON chỉ số kỹ thuật (resolution, ratio_9_16, fps, duration, codecs, size) và 5 ảnh khung hình tại `./downloads/qc_frames/`.
+
+### 5. Khảo sát & Cập nhật Manual khả năng tạo Video của Muse
+
+```bash
+node manual/interview.mjs
+```
+Tự động phỏng vấn Muse qua 18 câu hỏi chi tiết về khả năng dựng video, animation, sub, voiceover và cập nhật vào `manual/raw/`.
+
+---
+
+## Kiến trúc hệ thống (Architecture)
 
 ```
 MCP client (Claude Desktop / opencode / …)      OpenAI client (SDK / opencode provider)
@@ -264,57 +338,50 @@ MCP client (Claude Desktop / opencode / …)      OpenAI client (SDK / opencode 
         Chrome (dedicated profile ./.muse-profile)  ──►  https://muse.ai
 ```
 
-### Why a browser driver?
+### Tại sao lại dùng browser driver?
 
-Captured from a real session (endpoints + WS frames), Muse chat is **not** REST/SSE:
+Bắt luồng dữ liệu từ một phiên làm việc thực (endpoints + WS frames), chat của Muse **không phải** là REST/SSE:
 
-| Signal | Value |
+| Tín hiệu | Giá trị |
 | --- | --- |
-| App | Next.js on Vercel, fronted by Meta `fwdproxy` |
-| Auth | cookie-based: `POST /api/auth/check` → `{ ok, access_token, viewer_id }` |
-| Session | `GET /api/session` → assigned VM `wss://<vm_id>.metaaivm.com/` |
-| Wake | `POST /api/hatch/vm/wake` |
-| Chat transport | WebSocket `wss://hatch.metaaivm.com/v1/noise` — RPC methods `chat.stream`, `chat.history`, `chat.mark_seen` |
-| Frames | **encrypted binary** (Noise handshake), signed `auth_token`/`notary_token` in the WS URL |
-| `/api/falco` | telemetry only — **not** chat |
+| Ứng dụng | Next.js trên Vercel, phía trước có Meta `fwdproxy` |
+| Xác thực | dựa trên cookie: `POST /api/auth/check` → `{ ok, access_token, viewer_id }` |
+| Phiên (Session) | `GET /api/session` → gán VM `wss://<vm_id>.metaaivm.com/` |
+| Đánh thức | `POST /api/hatch/vm/wake` |
+| Chat transport | WebSocket `wss://hatch.metaaivm.com/v1/noise` — các RPC method `chat.stream`, `chat.history`, `chat.mark_seen` |
+| Khung tin nhắn | **Nhị phân mã hóa** (bắt tay Noise), có chữ ký `auth_token`/`notary_token` trong URL WS |
+| `/api/falco` | Chỉ dùng đo đạc từ xa (telemetry) — **không phải** nội dung chat |
 
-So the only robust options are (1) drive the real browser (this project) or (2) re-implement the encrypted Noise client ([roadmap](#roadmap)).
+Do đó, hai giải pháp khả thi nhất là (1) điều khiển trình duyệt thật (dự án này) hoặc (2) cài đặt lại Noise mã hóa ở cấp thấp ([xem roadmap](#lộ-trình-phát-triển)).
 
-### Selectors
+### Bộ chọn DOM (Selectors)
 
-| Purpose | Selector |
+| Mục đích | Selector |
 | --- | --- |
 | Composer root | `[data-hatch-composer-root]` |
-| Editor | `[data-hatch-composer-root] textarea` (fallback `[data-lexical-editor="true"]`) |
-| Send | `Enter` key |
-| Attach | `[data-hatch-composer-root] input[type="file"]` (hidden; `setInputFiles`) |
-| Chat list | `[data-testid="hatch-thread-row"]` |
+| Editor | `[data-hatch-composer-root] textarea` (dự phòng `[data-lexical-editor="true"]`) |
+| Gửi | Phím `Enter` |
+| Đính kèm | `[data-hatch-composer-root] input[type="file"]` (thẻ ẩn; dùng `setInputFiles`) |
+| Danh sách chat | `[data-testid="hatch-thread-row"]` |
 | Streaming | `[data-testid="hatch-composer-stop-button"]` |
-| Messages | `[data-message-item]` with `data-message-role="user" \| "assistant"` |
-| Error | `[data-testid="assistant-response-error-notice"]` |
+| Tin nhắn | `[data-message-item]` với `data-message-role="user" \| "assistant"` |
+| Báo lỗi | `[data-testid="assistant-response-error-notice"]` |
 | Auth probe | page-origin `fetch('/api/auth/check', { method: 'POST' })` |
 
 ---
 
-## Reproduce this yourself (HAR → coding agent)
+## Tự tái tạo lại dự án này (HAR → Coding agent)
 
-You don't have to reverse-engineer anything by hand. Capture what the app actually does,
-then let a coding agent read it and write the bridge for you.
+Bạn không cần phải tự đảo ngược mã nguồn (reverse-engineer) bằng tay. Hãy bắt lại toàn bộ lưu lượng trình duyệt thực hiện, sau đó để một AI coding agent đọc tệp đó và viết phần cầu nối giúp bạn.
 
-**Requirements: Google Chrome + some kind of coding agent** — Claude Code, OpenAI Codex,
-opencode, Cursor, Cline, Aider, … anything that can read files.
+**Yêu cầu: Google Chrome + một AI coding agent** — Claude Code, OpenAI Codex, opencode, Cursor, Cline, Aider, … bất kỳ agent nào có thể đọc tệp.
 
-1. **Open the app.** In Chrome, go to `https://muse.ai` and sign in with **your own** account.
-2. **Open DevTools.** Press `F12` → **Network** tab → tick **Preserve log**. Leave it open for
-   the whole session so the WebSocket frames get recorded.
-3. **Filter the traffic.** Click **Fetch/XHR** to see the HTTP calls, and **WS** to see the chat
-   WebSocket. Muse's chat is a **WebSocket**, not a REST call, so you want *both*.
-4. **Send a few prompts** (e.g. `hi`, `what can you do?`) so real traffic is recorded.
-5. **Export a HAR.** Right-click anywhere in the request list → **Save all as HAR with content**.
-   Pick the version **"with sensitive data"** — the sanitized export strips cookies and
-   WebSocket frames, which makes the capture useless.
-6. **Hand it to your coding agent.** Drop the file into your project (e.g. `captures/muse.har`)
-   and give the agent a prompt like this:
+1. **Mở ứng dụng.** Trong Chrome, truy cập `https://muse.ai` và đăng nhập tài khoản **của bạn**.
+2. **Mở DevTools.** Bấm `F12` → tab **Network** → tích chọn **Preserve log**. Giữ tab mở suốt phiên làm việc để bắt được các khung tin nhắn WebSocket.
+3. **Lọc lưu lượng.** Bấm **Fetch/XHR** để xem các cuộc gọi HTTP, và **WS** để xem WebSocket chat. Chat của Muse chạy qua **WebSocket**, không phải REST, nên bạn cần xem *cả hai*.
+4. **Gửi một vài prompt** (ví dụ: `hi`, `bạn làm được gì?`) để ghi nhận luồng dữ liệu thực tế.
+5. **Xuất tệp HAR.** Nhấp chuột phải vào danh sách yêu cầu → **Save all as HAR with content**. Chọn phiên bản **"with sensitive data"** — vì bản đã lọc sạch sẽ xóa mất cookie và khung WebSocket, làm cho tệp không còn tác dụng.
+6. **Đưa tệp cho AI agent.** Thả tệp vào dự án (ví dụ `captures/muse.har`) và đưa prompt dạng như sau:
 
    ```text
    Analyze captures/muse.har from a web chat app and report:
@@ -326,65 +393,66 @@ opencode, Cursor, Cline, Aider, … anything that can read files.
       (a) an MCP tool and (b) an OpenAI-compatible /v1 endpoint, given there is no official API.
    ```
 
-   The agent will read the HAR and tell you exactly what to build. In our capture it surfaced
-   `POST /api/auth/check`, `GET /api/session`, `POST /api/hatch/vm/wake`, and the **encrypted**
-   `wss://hatch.metaaivm.com/v1/noise` WebSocket with a `chat.stream` method — which is precisely
-   why this project **drives the real browser** instead of calling a REST API. If your agent
-   reaches the same conclusion, you're spot on.
+   Agent sẽ đọc tệp HAR và cho bạn biết chính xác cách xây dựng. Trong tệp HAR của chúng tôi, agent đã tìm ra `POST /api/auth/check`, `GET /api/session`, `POST /api/hatch/vm/wake`, và kết nối WebSocket **mã hóa** `wss://hatch.metaaivm.com/v1/noise` với hàm `chat.stream` — đó là lý do chính xác dự án này **điều khiển trình duyệt thật** thay vì gọi trực tiếp API REST.
 
 > [!WARNING]
-> A HAR "with sensitive data" contains your **session cookies and access tokens**. Never commit
-> it, never paste it into a chat, never share it. This repo's `.gitignore` already blocks `*.har`.
+> Tệp HAR "with sensitive data" có chứa **session cookies và access tokens** của bạn. Không bao giờ commit tệp này lên git, không dán vào chat công khai, không chia sẻ. Tệp `.gitignore` của dự án đã tự động chặn các tệp `*.har`.
 
 ---
 
-## Configuration (environment)
+## Cấu hình biến môi trường (Environment Variables)
 
-| Variable | Default | Meaning |
+| Biến môi trường | Mặc định | Ý nghĩa |
 | --- | --- | --- |
-| `MUSE_PROFILE_DIR` | `./.muse-profile` | dedicated Chrome profile (holds your login) |
-| `MUSE_URL` | `https://muse.ai/` | app URL |
-| `MUSE_CHANNEL` | `chrome` | `chrome` or `msedge` |
-| `MUSE_HEADLESS=1` | off | run headless (log in headed first) |
-| `MUSE_CDP` | – | attach to an existing Chrome at this URL (e.g. `http://127.0.0.1:9222`) instead of launching |
-| `MUSE_STREAM_QUIET_MS` | `600` | streaming stability window (skip mid-message draft rewrites) |
-| `MUSE_LAUNCH_TIMEOUT_MS` | `60000` | launch / navigation timeout |
-| `MUSE_SHIM_PORT` | `8787` | shim port (`0` disables the shim) |
-| `MUSE_SHIM_HOST` | `127.0.0.1` | shim bind host |
-| `MUSE_SHIM_TIMEOUT_MS` | `240000` | default shim request timeout |
-| `MUSE_SHIM_MODELS` | `muse-spark-1.3,muse-spark-1.3-contributor,muse` | advertised model ids |
-| `MUSE_SHIM_URL` | `http://127.0.0.1:8787/v1` | shim base url used by the CLI |
-| `MUSE_CLI_AUTOSTART=0` | off | disable the CLI auto-starting a shim |
+| `MUSE_PROFILE_DIR` | `./.muse-profile` | Thư mục profile Chrome riêng (lưu phiên đăng nhập) |
+| `MUSE_URL` | `https://muse.ai/` | URL ứng dụng |
+| `MUSE_CHANNEL` | `chrome` | `chrome` hoặc `msedge` |
+| `MUSE_HEADLESS=1` | off (tắt) | Chạy ẩn danh không giao diện (cần đăng nhập ở chế độ hiện hình trước) |
+| `MUSE_CDP` | – | Kết nối tới Chrome đang chạy tại URL này (vd `http://127.0.0.1:9222`) thay vì mở mới |
+| `MUSE_STREAM_QUIET_MS` | `600` | Khung thời gian chờ ổn định văn bản khi streaming |
+| `MUSE_LAUNCH_TIMEOUT_MS` | `60000` | Thời gian chờ khởi chạy / điều hướng |
+| `MUSE_SHIM_PORT` | `8787` | Cổng HTTP của Shim (`0` để tắt shim) |
+| `MUSE_SHIM_HOST` | `127.0.0.1` | Địa chỉ IP lắng nghe của Shim |
+| `MUSE_SHIM_TIMEOUT_MS` | `240000` | Thời gian chờ yêu cầu mặc định của Shim |
+| `MUSE_SHIM_MODELS` | `muse-spark-1.3,muse-spark-1.3-contributor,muse` | Danh sách tên model quảng bá |
+| `MUSE_SHIM_URL` | `http://127.0.0.1:8787/v1` | URL gốc của Shim mà CLI sử dụng |
+| `MUSE_CLI_AUTOSTART=0` | off (tắt) | Tắt tính năng CLI tự động khởi động shim |
 
 ---
 
-## Troubleshooting
+## Xử lý sự cố (Troubleshooting)
 
-- **`loggedIn: false`** → run `muse_login` (or `npm run selftest`) and sign in in the Chrome window.
-- **`composerReady: false`** after login → `node muse-server.mjs --dump-dom`; if the DOM changed, re-derive selectors and update `SELECTORS` in `muse-driver.mjs`.
-- **Empty reply / `timedOut`** → raise `timeout_sec`; agent tasks (browsing, VM work) can take minutes. `needsApproval: true` means Muse is waiting on an in-app approval you must click.
-- **Chrome profile locked** → expected if a Chrome already uses `.muse-profile`. The driver auto-attaches to `http://127.0.0.1:9222` in that case; otherwise close that window, or start Chrome with `--remote-debugging-port=9222` and set `MUSE_CDP`.
-- **`npm` blocked in PowerShell** → call `& "C:\Program Files\nodejs\npm.cmd"` instead of `npm`.
-
-## Limitations
-
-- **One conversation.** Muse is a single persistent thread; the in-app "new chat" control is unreliable. The shim sends the full transcript each call; `x-muse-thread: new` navigates to `/` first (best-effort fresh context).
-- **Serialized** — one browser, requests run one at a time (auto-queued).
-- **Tool calling is prompt-injected** — best-effort, not a native function-calling API.
-- **DOM-driven** — a Muse UI change can break selectors; `muse_dump_dom` is the escape hatch.
+- **`loggedIn: false`** → Chạy `muse_login` (hoặc `npm run selftest`) và hoàn tất đăng nhập trong cửa sổ Chrome.
+- **`composerReady: false` sau khi login** → Chạy `node muse-server.mjs --dump-dom`; nếu DOM thay đổi, cần cập nhật lại selector trong `SELECTORS` tại `muse-driver.mjs`.
+- **Câu trả lời trống / `timedOut`** → Tăng `timeout_sec`; các tác vụ agent phức tạp (lướt web, chạy VM) có thể mất vài phút. `needsApproval: true` nghĩa là Muse đang chờ bạn bấm duyệt (approval) trên giao diện web.
+- **Chrome profile locked (Khóa profile)** → Báo lỗi này xảy ra nếu một Chrome khác đang dùng `.muse-profile`. Driver sẽ tự kết nối tới `http://127.0.0.1:9222` nếu có; nếu không hãy đóng cửa sổ đó lại, hoặc khởi động Chrome với `--remote-debugging-port=9222` và đặt `MUSE_CDP`.
+- **`npm` bị chặn trong PowerShell** → Chạy lệnh bằng cách gọi `& "C:\Program Files\nodejs\npm.cmd"` thay vì `npm`.
 
 ---
 
-## Roadmap
+## Giới hạn (Limitations)
 
-- [ ] **Phase 2 — headless Noise client.** Talk to Muse directly over `wss://hatch.metaaivm.com/v1/noise` (X25519 + HKDF + AES‑GCM + Ed25519) with a `MUSE_TRANSPORT=noise|browser` switch, keeping the browser driver as fallback.
-- [ ] Native tool-calling passthrough for clients that support it.
-- [ ] Multi-thread support when Muse exposes a reliable switch.
+- **Một cuộc hội thoại chính.** Muse chạy trên một thread duy nhất; nút "new chat" trong web app không hoạt động ổn định. Shim gửi toàn bộ lịch sử mỗi lần gọi; `x-muse-thread: new` sẽ điều hướng về `/` trước (tạo ngữ cảnh mới dạng best-effort).
+- **Tuần tự hóa (Serialized)** — Một trình duyệt, các yêu cầu xử lý lần lượt theo hàng chờ (auto-queued).
+- **Tool calling là prompt-injected** — Dạng best-effort, không phải native function-calling API.
+- **Dựa vào DOM** — Giao diện Muse thay đổi có thể làm hỏng bộ chọn selector; `muse_dump_dom` là công cụ giúp kiểm tra.
 
-## Disclaimer
+---
 
-This is an **unofficial, unaffiliated** tool. It automates *your own* logged-in browser session and does not bundle, proxy, or share anyone's credentials. Use it only with an account you are entitled to use, and respect Muse's / Meta's Terms of Service and your local laws. The maintainers are not responsible for misuse or for any consequences of using this software. There is **no** API key, Chrome profile, or captured traffic in this repository — you bring your own.
+## Lộ trình phát triển (Roadmap)
 
-## License
+- [ ] **Phase 2 — Noise client không giao diện.** Giao tiếp trực tiếp với Muse qua `wss://hatch.metaaivm.com/v1/noise` (X25519 + HKDF + AES‑GCM + Ed25519) với công tắc `MUSE_TRANSPORT=noise|browser`, giữ trình duyệt làm phương án dự phòng.
+- [ ] Chuyển tiếp Tool-calling dạng native cho các client hỗ trợ.
+- [ ] Hỗ trợ đa luồng trò chuyện khi Muse cung cấp cơ chế chuyển đổi tin cậy.
+
+---
+
+## Tuyên bố miễn trừ trách nhiệm (Disclaimer)
+
+Đây là một công cụ **không chính thức, không liên kết** với Meta. Tool tự động hóa phiên làm việc trên trình duyệt *của chính bạn* và không đóng gói, proxy hay chia sẻ thông tin đăng nhập của bất kỳ ai. Chỉ sử dụng công cụ này với tài khoản mà bạn có quyền sử dụng, đồng thời tuân thủ Điều khoản dịch vụ của Muse / Meta và pháp luật hiện hành. Những người duy trì dự án không chịu trách nhiệm cho việc sử dụng sai mục đích hoặc bất kỳ hậu quả nào từ việc sử dụng phần mềm này. Dự án **không chứa** API key, Chrome profile hay lưu vết lưu lượng nào — bạn tự cung cấp tài khoản của mình.
+
+---
+
+## Giấy phép (License)
 
 [MIT](LICENSE) © 2026 fierzone

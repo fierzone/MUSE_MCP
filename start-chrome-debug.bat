@@ -1,0 +1,3 @@
+@echo off
+echo Running Chrome with Debug Port 9222...
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="%~dp0.muse-profile" https://muse.ai
