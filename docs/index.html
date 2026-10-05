@@ -11,17 +11,17 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%99%EF%B8%8F%3C/text%3E%3C/svg%3E" />
 <style>
   :root{
-    --bg:#0b0f1a; --panel:#121829; --panel2:#0f1524; --line:#222a41;
-    --txt:#e7ebf5; --muted:#9aa6c2; --accent:#7c5cff; --accent2:#22d3ee;
-    --ok:#34d399; --warn:#fbbf24; --radius:16px;
+    --bg:#09090b; --panel:#140e12; --panel2:#180f15; --line:#33141e;
+    --txt:#f4f4f5; --muted:#a1a1aa; --accent:#ff2e4c; --accent2:#ef4444;
+    --ok:#ef4444; --warn:#f59e0b; --radius:16px;
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
-  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,rgba(124,92,255,.22),transparent),radial-gradient(900px 500px at 10% 0%,rgba(34,211,238,.12),transparent),var(--bg);color:var(--txt);font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,rgba(255,46,76,.22),transparent),radial-gradient(900px 500px at 10% 0%,rgba(239,68,68,.12),transparent),var(--bg);color:var(--txt);font:16px/1.65 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
   a{color:var(--accent2);text-decoration:none}
   a:hover{text-decoration:underline}
   .wrap{max-width:1040px;margin:0 auto;padding:0 22px}
-  header.nav{position:sticky;top:0;backdrop-filter:blur(10px);background:rgba(11,15,26,.7);border-bottom:1px solid var(--line);z-index:20}
+  header.nav{position:sticky;top:0;backdrop-filter:blur(10px);background:rgba(9,9,11,.8);border-bottom:1px solid var(--line);z-index:20}
   .nav .wrap{display:flex;align-items:center;gap:18px;height:60px}
   .brand{font-weight:700;letter-spacing:.2px}
   .brand span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -36,8 +36,8 @@
   .sub{color:var(--muted);font-size:clamp(16px,2.2vw,20px);max-width:760px;margin:0 auto}
   .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:30px 0 6px}
   .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:12px;border:1px solid var(--line);color:var(--txt);background:var(--panel);font-weight:600;font-size:15px}
-  .btn:hover{text-decoration:none;border-color:#33406a}
-  .btn.primary{background:linear-gradient(90deg,var(--accent),#6d4dff);border-color:transparent}
+  .btn:hover{text-decoration:none;border-color:#5c1d2d}
+  .btn.primary{background:linear-gradient(90deg,var(--accent),#dc2626);border-color:transparent;color:#fff}
   section{padding:44px 0;border-top:1px solid var(--line)}
   h2{font-size:clamp(22px,3vw,30px);letter-spacing:-.01em;margin:0 0 8px}
   h2 + p.lead{color:var(--muted);margin-top:0}
@@ -50,17 +50,17 @@
   .card p{color:var(--muted);margin:0;font-size:14.5px}
   .card .ico{font-size:22px}
   .tag{display:inline-block;font-size:12px;color:var(--accent2);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-bottom:10px}
-  pre{position:relative;background:#0a0e1a;border:1px solid var(--line);border-radius:12px;padding:16px 16px;overflow:auto;font:13.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre{position:relative;background:#0d090b;border:1px solid var(--line);border-radius:12px;padding:16px 16px;overflow:auto;font:13.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
   code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  pre .copy{position:absolute;top:8px;right:8px;font-size:12px;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:#0f1524;color:var(--muted);cursor:pointer}
+  pre .copy{position:absolute;top:8px;right:8px;font-size:12px;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:#180f15;color:var(--muted);cursor:pointer}
   pre .copy:hover{color:var(--txt)}
   table{width:100%;border-collapse:collapse;font-size:14.5px}
   th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
   th{color:var(--muted);font-weight:600}
-  .flow{background:#0a0e1a;border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;color:#c8d3ee;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre}
-  .note{border-left:3px solid var(--warn);background:rgba(251,191,36,.08);padding:12px 16px;border-radius:0 10px 10px 0;color:#e9d9a8;font-size:14.5px}
+  .flow{background:#0d090b;border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;color:#f3f4f6;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre}
+  .note{border-left:3px solid var(--warn);background:rgba(245,158,11,.08);padding:12px 16px;border-radius:0 10px 10px 0;color:#fde68a;font-size:14.5px}
   footer{padding:40px 0 70px;color:var(--muted);border-top:1px solid var(--line);font-size:14px}
-  .kbd{background:#0a0e1a;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:13px}
+  .kbd{background:#0d090b;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:13px}
 </style>
 </head>
 <body>
@@ -80,11 +80,11 @@
 
 <div class="hero wrap">
   <div class="badges">
-    <img alt="license" src="https://img.shields.io/badge/license-MIT-22d3ee.svg" />
-    <img alt="node" src="https://img.shields.io/badge/node-%E2%89%A518-7c5cff.svg" />
-    <img alt="MCP" src="https://img.shields.io/badge/MCP-stdio-7c5cff.svg" />
-    <img alt="OpenAI-compatible" src="https://img.shields.io/badge/OpenAI-compatible-22d3ee.svg" />
-    <img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-34d399.svg" />
+    <img alt="license" src="https://img.shields.io/badge/license-MIT-ff2e4c.svg" />
+    <img alt="node" src="https://img.shields.io/badge/node-%E2%89%A518-dc2626.svg" />
+    <img alt="MCP" src="https://img.shields.io/badge/MCP-stdio-ff2e4c.svg" />
+    <img alt="OpenAI-compatible" src="https://img.shields.io/badge/OpenAI-compatible-ef4444.svg" />
+    <img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-ff2e4c.svg" />
   </div>
   <h1>Use <span class="g">Meta Muse</span> from any MCP or OpenAI client</h1>
   <p class="sub">Muse has no public API — its chat is an encrypted Noise WebSocket. <strong>Muse-Chat-MCP</strong> drives your real, logged-in Chrome instead, then exposes Muse as MCP tools <em>and</em> as an OpenAI-compatible HTTP endpoint. Your account, your quota.</p>

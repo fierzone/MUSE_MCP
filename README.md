@@ -1,6 +1,19 @@
-# Muse-Chat-MCP
+<div align="center">
 
-**Use Meta Muse — the [muse.ai](https://muse.ai) "Hatch" agent — from any MCP client or any OpenAI-compatible client, with your own account and quota.**
+# 🔴 Muse-Chat-MCP
+
+<p align="center">
+  <a href="https://github.com/fierzone/MUSE_MCP"><img src="https://img.shields.io/badge/MUSE-MCP-ff2e4c.svg?style=for-the-badge&logo=github&logoColor=white&color=ff2e4c&labelColor=0d0d11" alt="MUSE-MCP"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-ff2e4c.svg?style=for-the-badge&color=ff2e4c&labelColor=0d0d11" alt="License"/></a>
+  <img src="https://img.shields.io/badge/node->=18-ff2e4c.svg?style=for-the-badge&logo=nodedotjs&logoColor=white&color=ff2e4c&labelColor=0d0d11" alt="Node version"/>
+  <img src="https://img.shields.io/badge/Theme-Black_%26_Red-ff2e4c.svg?style=for-the-badge&color=ff2e4c&labelColor=0d0d11" alt="Theme"/>
+</p>
+
+### **Use Meta Muse — the [muse.ai](https://muse.ai) "Hatch" agent — from any MCP client or any OpenAI-compatible client, with your own account and quota.**
+
+</div>
+
+---
 
 Muse has no public API: its chat is an **encrypted WebSocket** (`wss://hatch.metaaivm.com/v1/noise`, an X25519 + HKDF + AES‑GCM + Ed25519 *Noise* transport). So instead of re‑implementing the protocol, this project **drives your real, logged‑in Chrome** with Playwright: the app performs all the crypto itself, and we type into the composer and read the rendered reply.
 
