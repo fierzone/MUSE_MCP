@@ -86,6 +86,7 @@ Một cửa sổ Chrome sẽ mở ra trang `https://muse.ai`. Hãy đăng nhập
 | **Chạy HTTP Shim độc lập** | `node muse-server.mjs --serve-only` | Chỉ chạy HTTP OpenAI Shim (port 8787), không lắng nghe MCP stdio. |
 | **Dump DOM Debugging** | `npm run dump` *(hoặc `node muse-server.mjs --dump-dom`)* | Xuất cấu trúc DOM HTML và đếm phần tử để debug selector. |
 | **Chạy CLI một lượt** | `npm run muse -- "prompt"` *(hoặc `node muse-cli.mjs "prompt"`)* | Gửi prompt trực tiếp từ CLI và nhận câu trả lời stream ra terminal. |
+| **Sinh Video từ Remotion Template** | `npm run gen-video` *(hoặc `node muse-gen-video.mjs --prompt "..."`)* | Gọi kịch bản từ Muse AI, sinh giọng đọc Edge TTS và render video Remotion MP4. |
 
 ---
 
@@ -320,6 +321,25 @@ node manual/qc-video.mjs ./downloads/sample_video.mp4 ./downloads/qc_frames
 node manual/interview.mjs
 ```
 Tự động phỏng vấn Muse qua 18 câu hỏi chi tiết về khả năng dựng video, animation, sub, voiceover và cập nhật vào `manual/raw/`.
+
+### 6. Tự động sinh Video ngắn bằng Code (Remotion AI Short Video Template)
+
+Dự án tích hợp sẵn template dựng video ngắn chuẩn Mobile 9:16 (`remotion-fierzone-template-main`) kết hợp giọng đọc AI Edge TTS và Remotion:
+
+- **Sinh & Render video mẫu (DockerExplainer):**
+  ```bash
+  npm run gen-video
+  ```
+- **Sinh & Render video theo topic cụ thể:**
+  ```bash
+  npm run gen-video -- --topic DemoTopic
+  ```
+- **Kết hợp Muse AI tự soạn kịch bản 6 cảnh & tự sinh Voiceover + Render MP4:**
+  ```bash
+  npm run gen-video -- --prompt "Giải thích Kubernetes trong 6 cảnh ngắn"
+  ```
+
+> 📁 File video `.mp4` hoàn chỉnh sau khi render sẽ tự động xuất về thư mục `./downloads/`.
 
 ---
 

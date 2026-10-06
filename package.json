@@ -29,11 +29,13 @@
   },
   "bin": {
     "muse-mcp": "muse-server.mjs",
-    "muse": "muse-cli.mjs"
+    "muse": "muse-cli.mjs",
+    "muse-gen-video": "muse-gen-video.mjs"
   },
   "scripts": {
     "start": "node muse-server.mjs",
     "muse": "node muse-cli.mjs",
+    "gen-video": "node muse-gen-video.mjs",
     "selftest": "node muse-server.mjs --self-test",
     "dump": "node muse-server.mjs --dump-dom"
   },
