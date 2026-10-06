@@ -511,6 +511,37 @@ Trả về DUY NHẤT một chuỗi JSON object có cấu trúc sau:
         }
       }
 
+      // Mode 2: Meta Muse AI Video Generation (Text-to-Video / Image-to-Video AI)
+      if (req.method === 'POST' && url === '/v1/muse-video') {
+        const raw = await readBody(req)
+        let body = {}
+        try { body = JSON.parse(raw || '{}') } catch {}
+
+        const prompt = body.prompt || 'Tạo video 9:16 nghệ thuật'
+        const files = body.file ? [body.file] : undefined
+
+        log(`[muse-video API] Mode 2 Meta Muse AI Prompt: "${prompt}"`)
+        const startTime = Date.now()
+
+        try {
+          const resText = await driver.chat({ prompt, files, timeoutMs: 300000 })
+          const dir = path.join(__dirname, 'downloads')
+          const mediaRes = await driver.chatMedia(undefined, { download: true, dir })
+
+          const elapsedSec = Math.round((Date.now() - startTime) / 1000)
+          res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+          return res.end(JSON.stringify({
+            ok: true,
+            reply: resText,
+            media: mediaRes,
+            elapsedSec
+          }))
+        } catch (err) {
+          res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+          return res.end(JSON.stringify({ ok: false, error: err.message || String(err) }))
+        }
+      }
+
       if (req.method === 'GET' && url === '/v1/models') {
         res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
         return res.end(JSON.stringify({
