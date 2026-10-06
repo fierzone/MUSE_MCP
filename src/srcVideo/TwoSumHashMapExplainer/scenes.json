@@ -1,0 +1,29 @@
+{
+  "topicKey": "TwoSumHashMapExplainer",
+  "scenes": [
+    {
+      "id": "scene1_hook",
+      "text": "Bài toán Two Sum huyền thoại trên LeetCode: Tại sao giải bằng HashMap lại nhanh hơn 2 vòng lặp For gấp hàng trăm lần?"
+    },
+    {
+      "id": "scene2_problem",
+      "text": "Cách ngây thơ dùng 2 vòng For vét cạn làm độ phức tạp lên tới O(n²). Với mảng 10.000 phần tử, nó phải thực hiện 100 triệu phép so sánh!"
+    },
+    {
+      "id": "scene3_solution",
+      "text": "Bí kíp nằm ở HashMap! Bằng cách vừa duyệt mảng vừa lưu giá trị target trừ số hiện tại, ta có thể tra cứu tức thì chỉ trong O(1)."
+    },
+    {
+      "id": "scene4_flow",
+      "text": "Quy trình 3 bước: Bước 1 tính số còn thiếu, Bước 2 tra HashMap xem số đó đã có chưa, Bước 3 nếu có trả về cặp index, chưa có thì lưu vào map!"
+    },
+    {
+      "id": "scene5_benefits",
+      "text": "Kết quả: Độ phức tạp thời gian giảm từ O(n²) xuống O(n). Thuật toán chạy cực mượt, tiết kiệm tối đa thời gian xử lý."
+    },
+    {
+      "id": "scene6_outro",
+      "text": "Chỉ đánh đổi một chút RAM cho O(n) không gian, bạn đã tối ưu thuật toán đỉnh cao! Hãy ấn tim và follow FierZone để master thuật toán nhé!"
+    }
+  ]
+}

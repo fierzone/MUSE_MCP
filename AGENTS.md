@@ -9,11 +9,12 @@ driving a real, logged-in Chrome with Playwright. See `README.md` for usage.
 
 ## Map
 
+- `STRUCTURE.md` — full workspace folder map & asset conventions.
 - `muse-driver.mjs` — browser driver (selectors, `_run`/`chat`/`chatStream`, `_serial`).
-- `muse-server.mjs` — MCP stdio server (7 tools) + shim bootstrap; `--self-test`,
-  `--dump-dom`, `--serve-only`.
+- `muse-server.mjs` — MCP stdio server (7 tools) + shim bootstrap; `--self-test`, `--dump-dom`, `--serve-only`.
 - `muse-openai-shim.mjs` — OpenAI shim (`/v1/models`, `/v1/chat/completions`).
 - `muse-cli.mjs` — CLI over the shim.
+- `muse-gen-video.mjs` — CLI generator (Prompt -> 6-scene script -> TTS audio -> Remotion MP4).
 - `docs/index.html` — GitHub Pages landing page.
 
 ## Invariants (do not break)

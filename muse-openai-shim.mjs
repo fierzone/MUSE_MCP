@@ -327,13 +327,35 @@ export function startShim({ port = PORT, host = HOST } = {}) {
         return res.end(JSON.stringify({ ok: true, ...st, models: MODEL_IDS }))
       }
 
-      // Static files in public/web/ (styles.css, app.jsx, etc.)
-      if (req.method === 'GET' && (url === '/styles.css' || url === '/app.jsx' || url.startsWith('/web/'))) {
-        const fileRel = url.replace(/^\/web\//, '').replace(/^\//, '')
+      // MIME Type helper function
+      const getMimeType = (filePath) => {
+        const ext = path.extname(filePath).toLowerCase()
+        switch (ext) {
+          case '.html': return 'text/html; charset=utf-8'
+          case '.css': return 'text/css; charset=utf-8'
+          case '.js':
+          case '.jsx':
+          case '.mjs': return 'application/javascript; charset=utf-8'
+          case '.json': return 'application/json; charset=utf-8'
+          case '.png': return 'image/png'
+          case '.jpg':
+          case '.jpeg': return 'image/jpeg'
+          case '.webp': return 'image/webp'
+          case '.gif': return 'image/gif'
+          case '.svg': return 'image/svg+xml'
+          case '.mp4': return 'video/mp4'
+          case '.mp3': return 'audio/mpeg'
+          case '.wav': return 'audio/wav'
+          default: return 'application/octet-stream'
+        }
+      }
+
+      // Static files in public/web/ (styles.css, app.jsx, logo.png, etc.)
+      if (req.method === 'GET' && (url === '/' || url === '/index.html' || url === '/styles.css' || url === '/app.jsx' || url === '/logo.png' || url.startsWith('/web/'))) {
+        const fileRel = url === '/' ? 'index.html' : url.replace(/^\/web\//, '').replace(/^\//, '')
         const filePath = path.join(__dirname, 'public', 'web', fileRel)
-        if (fs.existsSync(filePath)) {
-          const ext = path.extname(filePath).toLowerCase()
-          const mime = ext === '.css' ? 'text/css; charset=utf-8' : ext === '.jsx' || ext === '.js' ? 'application/javascript; charset=utf-8' : ext === '.html' ? 'text/html; charset=utf-8' : 'application/octet-stream'
+        if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+          const mime = getMimeType(filePath)
           res.writeHead(200, { 'Content-Type': mime, 'Access-Control-Allow-Origin': '*' })
           return res.end(fs.readFileSync(filePath))
         }
@@ -351,8 +373,7 @@ export function startShim({ port = PORT, host = HOST } = {}) {
         const fileRel = url.replace(/^\/assets\//, '')
         const assetPath = path.join(__dirname, 'remotion-fierzone-template-main', 'assets', fileRel)
         if (fs.existsSync(assetPath)) {
-          const ext = path.extname(assetPath).toLowerCase()
-          const mime = ext === '.png' ? 'image/png' : ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : 'application/octet-stream'
+          const mime = getMimeType(assetPath)
           res.writeHead(200, { 'Content-Type': mime, 'Access-Control-Allow-Origin': '*' })
           return res.end(fs.readFileSync(assetPath))
         }
@@ -373,19 +394,20 @@ export function startShim({ port = PORT, host = HOST } = {}) {
         return res.end(JSON.stringify({ ok: true, files }))
       }
 
-      // Serve static video / media files from ./downloads/ with Range header support
+      // Serve static video / media files from ./downloads/ with Range header support & proper MIME types
       if (req.method === 'GET' && url.startsWith('/v1/downloads/')) {
         const filename = decodeURIComponent(url.replace(/^\/v1\/downloads\//, ''))
         const filePath = path.join(__dirname, 'downloads', filename)
-        if (!fs.existsSync(filePath)) {
+        if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
           return sendError(res, 404, 'File not found')
         }
 
         const stat = fs.statSync(filePath)
         const fileSize = stat.size
+        const mime = getMimeType(filePath)
         const range = req.headers.range
 
-        if (range) {
+        if (range && mime.startsWith('video/')) {
           const parts = range.replace(/bytes=/, '').split('-')
           const start = parseInt(parts[0], 10)
           const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1
@@ -396,19 +418,90 @@ export function startShim({ port = PORT, host = HOST } = {}) {
             'Content-Range': `bytes ${start}-${end}/${fileSize}`,
             'Accept-Ranges': 'bytes',
             'Content-Length': chunksize,
-            'Content-Type': 'video/mp4',
+            'Content-Type': mime,
             'Access-Control-Allow-Origin': '*',
           })
           return fileStream.pipe(res)
         } else {
           res.writeHead(200, {
             'Content-Length': fileSize,
-            'Content-Type': filename.endsWith('.mp4') ? 'video/mp4' : 'application/octet-stream',
+            'Content-Type': mime,
             'Access-Control-Allow-Origin': '*',
           })
           return fs.createReadStream(filePath).pipe(res)
         }
       }
+
+      // File Upload Route (Drag & Drop or Clipboard paste upload)
+      if (req.method === 'POST' && url === '/v1/upload') {
+        const raw = await readBody(req)
+        let body = {}
+        try { body = JSON.parse(raw || '{}') } catch {}
+
+        const name = body.name || `image_${Date.now()}.png`
+        const dataStr = body.data || ''
+        const uploadsDir = path.join(__dirname, 'src', 'uploads')
+        if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true })
+
+        const timestamp = Date.now()
+        const cleanName = `${timestamp}_${name.replace(/[^a-zA-Z0-9_.-]/g, '_')}`
+        const savePath = path.join(uploadsDir, cleanName)
+
+        if (dataStr.startsWith('data:')) {
+          const base64Data = dataStr.replace(/^data:[^;]+;base64,/, '')
+          const buf = Buffer.from(base64Data, 'base64')
+          fs.writeFileSync(savePath, buf)
+        } else {
+          fs.writeFileSync(savePath, raw, 'binary')
+        }
+
+        log(`[upload API] Saved uploaded file to ./src/uploads: ${cleanName}`)
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+        return res.end(JSON.stringify({
+          ok: true,
+          filePath: savePath,
+          fileName: cleanName,
+          originalName: name,
+          url: `/v1/uploads/${encodeURIComponent(cleanName)}`
+        }))
+      }
+
+      // Serve uploaded static files from ./src/uploads/ (or fallback to ./uploads/)
+      if (req.method === 'GET' && (url.startsWith('/v1/uploads/') || url.startsWith('/v1/src/uploads/'))) {
+        const filename = decodeURIComponent(url.replace(/^\/v1\/(src\/)?uploads\//, ''))
+        let filePath = path.join(__dirname, 'src', 'uploads', filename)
+        if (!fs.existsSync(filePath)) {
+          filePath = path.join(__dirname, 'uploads', filename)
+        }
+        if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+          return sendError(res, 404, 'File not found')
+        }
+
+        const mime = getMimeType(filePath)
+        res.writeHead(200, {
+          'Content-Length': fs.statSync(filePath).size,
+          'Content-Type': mime,
+          'Access-Control-Allow-Origin': '*',
+        })
+        return fs.createReadStream(filePath).pipe(res)
+      }
+
+      // POST /v1/chat/new -> Synchronize new thread on https://muse.ai/thread/new
+      if (req.method === 'POST' && url === '/v1/chat/new') {
+        log('[chat/new API] Creating new thread on Meta Muse AI...')
+        try {
+          if (!driver.isRunning()) await driver.launch()
+          const result = await driver.newChat()
+          res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+          return res.end(JSON.stringify({ ok: true, url: result.url }))
+        } catch (err) {
+          log(`[chat/new API error] ${err.message}`)
+          res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+          return res.end(JSON.stringify({ ok: false, error: err.message }))
+        }
+      }
+
+
 
       // AI Script Generator Route: Generates 6-scene JSON script from prompt
       if (req.method === 'POST' && url === '/v1/ai-script') {
@@ -437,21 +530,21 @@ Trả về DUY NHẤT một chuỗi JSON hợp lệ (không chứa nhãn markdow
   ]}`
 
         try {
-          const cliScript = path.join(__dirname, 'muse-cli.mjs')
-          const childRes = spawnSync(process.execPath, [cliScript, '-s', systemPrompt, '--no-stream', prompt], {
-            cwd: __dirname,
-            encoding: 'utf-8',
-          })
-          const match = (childRes.stdout || '').match(/\{[\s\S]*\}/)
+          if (!driver.isRunning()) await driver.launch()
+          const replyObj = await driver.chat(`${systemPrompt}\n\nChủ đề kịch bản: "${prompt}"`, { timeoutMs: 60000 })
+          const replyText = typeof replyObj === 'string' ? replyObj : (replyObj?.reply || '')
+          const match = replyText.match(/\{[\s\S]*\}/)
           if (match) {
             const scriptData = JSON.parse(match[0])
             res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
             return res.end(JSON.stringify({ ok: true, script: scriptData }))
           }
-        } catch (e) {}
+        } catch (e) {
+          log(`[ai-script API error] ${e.message || e}`)
+        }
 
         res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
-        return res.end(JSON.stringify({ ok: false, error: 'Không thể sinh kịch bản từ Meta Muse AI. Vui lòng kiểm tra lại kết nối Chrome Muse AI.' }))
+        return res.end(JSON.stringify({ ok: false, error: 'Không thể sinh kịch bản từ Meta Muse AI. Vui lòng kiểm tra kết nối Chrome Muse AI.' }))
       }
 
       // API trigger: Video Generation Engine
@@ -472,7 +565,7 @@ Trả về DUY NHẤT một chuỗi JSON hợp lệ (không chứa nhãn markdow
 
         // If custom script object is provided from UI
         if (body.customScript && typeof body.customScript === 'object') {
-          const tempJsonPath = path.join(__dirname, 'remotion-fierzone-template-main', 'scripts', 'temp-scenes.json')
+          const tempJsonPath = path.join(__dirname, 'scripts', 'temp-scenes.json')
           if (body.customScript.topicKey) topic = body.customScript.topicKey
           fs.writeFileSync(tempJsonPath, JSON.stringify(body.customScript, null, 2), 'utf-8')
         }

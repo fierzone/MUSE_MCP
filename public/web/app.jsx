@@ -1,18 +1,38 @@
 // --------------------------------------------------------------------------
-// ⚡ MUSE AI & REMOTION VIDEO STUDIO — REACT APP COMPONENT
+// ⚡ FZ STUDIO WEB — MONITORING DASHBOARD WEB & CHAT
 // --------------------------------------------------------------------------
 
 const { useState, useEffect, useRef } = React;
 
-// 1. Header Navbar Component
+// 1. Toast Notification Component
+function ToastContainer({ toasts, removeToast }) {
+  return (
+    <div className="toast-container">
+      {toasts.map(t => (
+        <div key={t.id} className={`toast-card toast-${t.type}`}>
+          <div className="toast-icon">
+            {t.type === 'success' ? '✅' : t.type === 'error' ? '❌' : 'ℹ️'}
+          </div>
+          <div className="toast-body">
+            <div className="toast-title">{t.title}</div>
+            {t.message && <div className="toast-msg">{t.message}</div>}
+          </div>
+          <span className="toast-close" onClick={() => removeToast(t.id)}>✕</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// 2. Header Navbar Component
 function HeaderNav({ status }) {
   return (
     <header>
       <div className="brand">
-        <div className="brand-icon"><i className="ri-video-sparkline-fill"></i></div>
-        <div className="brand-text">MUSE <span>STUDIO WEB</span></div>
+        <img src="/logo.png" alt="FierZone Mascot" className="brand-logo-img" />
+        <div className="brand-text">FZ <span>STUDIO WEB</span></div>
       </div>
-      
+
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <div className="status-badge">
           <div className={`status-dot ${status.loggedIn ? '' : 'offline'}`}></div>
@@ -23,334 +43,305 @@ function HeaderNav({ status }) {
   );
 }
 
-// 2. Remotion AI Video Studio Component
+// 3. Remotion Video Studio Monitor Component (Display & Preview Only)
 function VideoStudioTab() {
-  const [genMode, setGenMode] = useState('mode1'); // 'mode1' = Remotion Code Explainer, 'mode2' = Meta Muse AI Video
-  const [topic, setTopic] = useState('DockerExplainer');
-  const [channelName, setChannelName] = useState('FierZone');
-  const [voice, setVoice] = useState('vi-VN-NamMinhNeural');
-  const [rate, setRate] = useState('+10%');
-  const [prompt, setPrompt] = useState('');
-  const [musePrompt, setMusePrompt] = useState('Tạo thước phim điện ảnh cinematic 35mm 4K, góc quay chậm cận cảnh nhân vật bước đi dưới mưa đêm thành phố, ánh đèn đường nhòe mờ (bokeh), chiều sâu trường ảnh điện ảnh chân thực như phim ngắn chiếu rạp');
-  const [attachFile, setAttachFile] = useState('');
-  const [scriptJsonText, setScriptJsonText] = useState('');
-  const [generatingScript, setGeneratingScript] = useState(false);
-  const [rendering, setRendering] = useState(false);
-  const [logs, setLogs] = useState('🚀 Sẵn sàng. Chọn chế độ tạo video mong muốn bên dưới...');
-  const [videoSrc, setVideoSrc] = useState('/v1/downloads/DockerExplainer.mp4');
-
-  // Mode 1: AI Script Generation Handler
-  const handleGenerateScript = async () => {
-    if (!prompt.trim()) {
-      alert('Vui lòng nhập Prompt chủ đề video (ví dụ: "Giải thích Kubernetes trong 6 cảnh ngắn")');
-      return;
-    }
-
-    setGeneratingScript(true);
-    setLogs(`🤖 Muse AI đang biên soạn kịch bản 6 cảnh & Remotion Code cho chủ đề: "${prompt}"...`);
-
-    try {
-      const res = await fetch('/v1/ai-script', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, topicKey: topic !== 'DockerExplainer' && topic !== 'DemoTopic' ? topic : undefined })
-      });
-      const data = await res.json();
-
-      if (data.ok && data.script) {
-        setScriptJsonText(JSON.stringify(data.script, null, 2));
-        if (data.script.topicKey) setTopic(data.script.topicKey);
-        setLogs(prev => prev + `\n\n✅ ĐÃ TẠO XONG KỊCH BẢN CHỦ ĐỀ "${data.script.topicKey || topic}"!\n\nBạn có thể chỉnh sửa trực tiếp nội dung lời thoại bên dưới trước khi bấm Render.`);
-      } else {
-        setLogs(prev => prev + `\n\n❌ LỖI TẠO KỊCH BẢN: ${data.error || 'Unknown error'}`);
-      }
-    } catch (err) {
-      setLogs(prev => prev + `\n\n❌ LỖI KẾT NỐI: ${err.message}`);
-    } finally {
-      setGeneratingScript(false);
-    }
-  };
-
-  // Mode 1: Video Render Handler
-  const handleGenVideoMode1 = async () => {
-    setRendering(true);
-    let customScriptObj = null;
-
-    if (scriptJsonText.trim()) {
-      try {
-        customScriptObj = JSON.parse(scriptJsonText.trim());
-      } catch (err) {
-        alert('Cú pháp JSON kịch bản không hợp lệ. Vui lòng kiểm tra lại!');
-        setRendering(false);
-        return;
-      }
-    }
-
-    const currentTopic = customScriptObj?.topicKey || topic;
-    setLogs(`🎬 Mode 1: Render Video Remotion MP4 cho chủ đề: "${currentTopic}"\n🏷️ Thương hiệu: "${channelName}"\n🎙️ Voice: ${voice} (${rate})\n⌛ Vui lòng đợi trong giây lát...`);
-
-    try {
-      const res = await fetch('/v1/gen-video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic: currentTopic,
-          prompt,
-          channelName,
-          voice,
-          rate,
-          customScript: customScriptObj
-        })
-      });
-      const data = await res.json();
-
-      if (data.ok) {
-        setLogs(prev => prev + `\n\n🎉 RENDER MODE 1 THÀNH CÔNG!\n📁 File xuất tại: ${data.outputPath}\n⏱️ Thời gian: ${data.elapsedSec || 'N/A'}s`);
-        setVideoSrc(`/v1/downloads/${currentTopic}.mp4?t=${Date.now()}`);
-      } else {
-        setLogs(prev => prev + `\n\n❌ LỖI RENDER: ${data.error || 'Unknown error'}`);
-      }
-    } catch (err) {
-      setLogs(prev => prev + `\n\n❌ LỖI KẾT NỐI: ${err.message}`);
-    } finally {
-      setRendering(false);
-    }
-  };
-
-  // Mode 2: Meta Muse AI Video Generator Handler (Text-to-Video / Image-to-Video)
-  const handleGenVideoMode2 = async () => {
-    if (!musePrompt.trim()) {
-      alert('Vui lòng nhập Prompt mô tả cảnh phim video cho Muse AI!');
-      return;
-    }
-
-    setRendering(true);
-    setLogs(`🤖 Mode 2: Đang gửi lệnh tạo Video AI tới Meta Muse (muse.ai)...\n📝 Prompt: "${musePrompt}"\n⌛ Quá trình sinh video AI có thể mất 1-3 phút, vui lòng đợi...`);
-
-    try {
-      const res = await fetch('/v1/muse-video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: musePrompt,
-          file: attachFile.trim() || undefined
-        })
-      });
-      const data = await res.json();
-
-      if (data.ok) {
-        const downloads = data.media?.downloads?.saved || [];
-        const savedMp4 = downloads.find(d => d.file && d.file.endsWith('.mp4'));
-
-        setLogs(prev => prev + `\n\n🎉 MODE 2 TẠO VIDEO AI THÀNH CÔNG!\n💬 Phản hồi: ${data.reply || ''}\n⏱️ Thời gian: ${data.elapsedSec || 'N/A'}s`);
-
-        if (savedMp4) {
-          const filename = savedMp4.file.split(/[/\\]/).pop();
-          setVideoSrc(`/v1/downloads/${encodeURIComponent(filename)}?t=${Date.now()}`);
-        }
-      } else {
-        setLogs(prev => prev + `\n\n❌ LỖI TẠO VIDEO AI: ${data.error || 'Unknown error'}`);
-      }
-    } catch (err) {
-      setLogs(prev => prev + `\n\n❌ LỖI KẾT NỐI: ${err.message}`);
-    } finally {
-      setRendering(false);
-    }
-  };
+  const [logs, setLogs] = useState('🚀 Sẵn sàng. Tiến trình & Log Output từ Antigravity AI Agent sẽ hiển thị tại đây...');
+  const [videoSrc, setVideoSrc] = useState(null); // Starts as null so placeholder displays initially
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      
-      {/* Mode Selector Header Bar */}
-      <div style={{ display: 'flex', gap: '16px', background: 'rgba(15, 23, 42, 0.8)', padding: '10px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-        <button
-          className={`btn ${genMode === 'mode1' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ flex: 1 }}
-          onClick={() => setGenMode('mode1')}
-        >
-          <i className="ri-code-s-slash-line"></i> LOẠI 1: Video Remotion Code Explainer (Dự án nhỏ - Đồ họa Code & Subtitle)
-        </button>
-        <button
-          className={`btn ${genMode === 'mode2' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ flex: 1 }}
-          onClick={() => setGenMode('mode2')}
-        >
-          <i className="ri-film-line"></i> LOẠI 2: Meta Muse AI Cinematic Video Generator (Dự án lớn - Text/Image-to-Video AI)
-        </button>
+    <div className="grid-2">
+      {/* Progress & Console Log Output */}
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title"><i className="ri-terminal-box-line"></i> Tiến trình & Log Output</div>
+        </div>
+        <div className="console-box" style={{ minHeight: '480px' }}>{logs}</div>
       </div>
 
-      <div className="grid-3">
-        {/* Left Controls Card */}
-        <div className="card">
-          
-          {genMode === 'mode1' ? (
-            /* Mode 1: Remotion Code Explainer Controls */
-            <>
-              <div className="card-header">
-                <div className="card-title"><i className="ri-magic-line"></i> LOẠI 1: Remotion Code & Subtitle Explainer</div>
-              </div>
-
-              <div className="form-group">
-                <label><i className="ri-openai-fill"></i> 1. Nhập Ý Tưởng / Chủ Đề Video Bất Kỳ</label>
-                <textarea
-                  value={prompt}
-                  onChange={e => setPrompt(e.target.value)}
-                  placeholder="Ví dụ: Giải thích khái niệm Kubernetes, 3 mẹo Clean Code, Lập trình Python FastAPI..."
-                  rows={2}
-                ></textarea>
-              </div>
-
-              <button className="btn btn-secondary" onClick={handleGenerateScript} disabled={generatingScript}>
-                {generatingScript ? <><i className="ri-loader-4-line ri-spin"></i> Đang Soạn Kịch Bản AI...</> : <><i className="ri-sparkling-fill"></i> 🤖 AI Gợi Ý Kịch Bản & Remotion Code</>}
-              </button>
-
-              <div className="form-group" style={{ marginTop: '8px' }}>
-                <label><i className="ri-edit-code-line"></i> 2. Kịch Bản JSON 6 Cảnh (Xem & Sửa Tự Do)</label>
-                <textarea
-                  value={scriptJsonText}
-                  onChange={e => setScriptJsonText(e.target.value)}
-                  placeholder='Bấm nút trên để Muse AI tự sinh kịch bản JSON, hoặc tự dán kịch bản của bạn vào đây...'
-                  rows={8}
-                  style={{ fontFamily: 'monospace', fontSize: '13px', lineHeight: '1.5' }}
-                ></textarea>
-              </div>
-
-              <div className="form-group">
-                <label><i className="ri-flag-2-line"></i> Thương hiệu Kênh (Brand Header)</label>
-                <input type="text" value={channelName} onChange={e => setChannelName(e.target.value)} placeholder="Ví dụ: FierZone, Cường IT..." />
-              </div>
-
-              <div className="form-group">
-                <label><i className="ri-mic-line"></i> Giọng đọc AI (Edge TTS)</label>
-                <select value={voice} onChange={e => setVoice(e.target.value)}>
-                  <option value="vi-VN-NamMinhNeural">vi-VN-NamMinhNeural (Nam - Trầm ấm)</option>
-                  <option value="vi-VN-HoaiMyNeural">vi-VN-HoaiMyNeural (Nữ - Truyền cảm)</option>
-                  <option value="en-US-ChristopherNeural">en-US-ChristopherNeural (Nam tiếng Anh)</option>
-                  <option value="en-US-JennyNeural">en-US-JennyNeural (Nữ tiếng Anh)</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label><i className="ri-speed-line"></i> Tốc độ đọc (Rate)</label>
-                <input type="text" value={rate} onChange={e => setRate(e.target.value)} placeholder="+10%, +15%, +0%" />
-              </div>
-
-              <button className="btn btn-primary" onClick={handleGenVideoMode1} disabled={rendering}>
-                {rendering ? <><i className="ri-loader-4-line ri-spin"></i> Đang Render Video Remotion...</> : <><i className="ri-movie-2-line"></i> 🎥 Render Video Remotion (Mode 1)</>}
-              </button>
-            </>
+      {/* Video MP4 Player Preview */}
+      <div className="card" style={{ alignItems: 'center' }}>
+        <div className="card-header" style={{ width: '100%' }}>
+          <div className="card-title"><i className="ri-play-circle-line"></i> Trình Xem Trước Video MP4</div>
+        </div>
+        <div className="video-preview-box">
+          {videoSrc ? (
+            <video key={videoSrc} controls autoPlay>
+              <source src={videoSrc} type="video/mp4" />
+              Trình duyệt không hỗ trợ video MP4.
+            </video>
           ) : (
-            /* Mode 2: Meta Muse AI Cinematic Video Controls */
-            <>
-              <div className="card-header">
-                <div className="card-title"><i className="ri-film-line"></i> LOẠI 2: Meta Muse AI Cinematic Generator</div>
-              </div>
-
-              <div className="form-group">
-                <label><i className="ri-landscape-line"></i> 1. Nhập Prompt Mô Tả Cảnh Phim (Text-to-Video AI)</label>
-                <textarea
-                  value={musePrompt}
-                  onChange={e => setMusePrompt(e.target.value)}
-                  placeholder="Ví dụ: Thước phim điện ảnh cinematic 35mm 4K, góc quay chậm cận cảnh nhân vật bước đi dưới mưa đêm, ánh sáng điện ảnh chân thực như phim ngắn chiếu rạp..."
-                  rows={4}
-                ></textarea>
-
-                {/* Quick Cinematic Prompt Presets */}
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', alignSelf: 'center' }}>Gợi ý Style Phim:</span>
-                  <button
-                    className="btn btn-secondary"
-                    style={{ fontSize: '11px', padding: '4px 10px' }}
-                    onClick={() => setMusePrompt('Tạo thước phim điện ảnh cinematic 35mm 4K, góc quay chậm cận cảnh nhân vật bước đi dưới mưa đêm thành phố, ánh đèn đường nhòe mờ (bokeh), chiều sâu trường ảnh điện ảnh chân thực như phim ngắn chiếu rạp.')}
-                  >
-                    🎬 Phim Đêm Mưa Cinematic
-                  </button>
-                  <button
-                    className="btn btn-secondary"
-                    style={{ fontSize: '11px', padding: '4px 10px' }}
-                    onClick={() => setMusePrompt('Tạo video 9:16 dạng phim ngắn điện ảnh, góc quay drone lướt nhẹ qua góc phố cổ kính sáng sớm sương mờ, màu sắc phim Kodak 35mm, ánh sáng tự nhiên tuyệt đẹp, chuyển động mượt mà chân thực.')}
-                  >
-                    🎞️ Phim Ngắn Phố Cổ Kodak 35mm
-                  </button>
-                  <button
-                    className="btn btn-secondary"
-                    style={{ fontSize: '11px', padding: '4px 10px' }}
-                    onClick={() => setMusePrompt('Tạo thước phim cinematic chân thực, nhân vật thực hiện phân cảnh kịch tính trong không gian mờ tối, ánh sáng anamorphic lens, độ tương phản điện ảnh cao như phim bom tấn Hollywood.')}
-                  >
-                    🎥 Phim Kịch Tính Hollywood
-                  </button>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label><i className="ri-image-add-line"></i> 2. Đường Dẫn Ảnh Mẫu (Image-to-Video / Tùy chọn)</label>
-                <input
-                  type="text"
-                  value={attachFile}
-                  onChange={e => setAttachFile(e.target.value)}
-                  placeholder="Ví dụ: C:\path\character_ref.png hoặc URL ảnh..."
-                />
-              </div>
-
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-                💡 <strong>Mô tả:</strong> Chế độ này gửi trực tiếp prompt tới Meta Muse AI (Hatch agent) trên <code>muse.ai</code> để sinh ra video AI cinematic/thực tế 9:16 và tự động tải file <code>.mp4</code> về máy.
+            <div className="video-placeholder">
+              <i className="ri-movie-line" style={{ fontSize: '56px', color: 'var(--primary)', marginBottom: '12px' }}></i>
+              <p style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '16px' }}>Chưa Có Video Được Chọn</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px', lineHeight: '1.5' }}>
+                Hãy thực hiện tạo video mới từ AI Agent Antigravity.<br />
+                Video MP4 sẽ tự động hiển thị và mở xem tại đây ngay khi gen xong!
               </p>
-
-              <button className="btn btn-primary" onClick={handleGenVideoMode2} disabled={rendering}>
-                {rendering ? <><i className="ri-loader-4-line ri-spin"></i> Muse AI Đang Sinh Video (1-3 phút)...</> : <><i className="ri-sparkling-fill"></i> 🤖 Ra Lệnh Muse AI Sinh Video (Mode 2)</>}
-              </button>
-            </>
+            </div>
           )}
-
-        </div>
-
-        {/* Right Column: Console & Player Preview */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div className="grid-2">
-            {/* Logs Card */}
-            <div className="card">
-              <div className="card-header">
-                <div className="card-title"><i className="ri-terminal-box-line"></i> Tiến trình & Log Output</div>
-              </div>
-              <div className="console-box">{logs}</div>
-            </div>
-
-            {/* Video Preview */}
-            <div className="card" style={{ alignItems: 'center' }}>
-              <div className="card-header" style={{ width: '100%' }}>
-                <div className="card-title"><i className="ri-play-circle-line"></i> Trình Xem Trước Video MP4</div>
-              </div>
-              <div className="video-preview-box">
-                <video key={videoSrc} controls poster="/assets/demo-preview.png">
-                  <source src={videoSrc} type="video/mp4" />
-                  Trình duyệt không hỗ trợ video MP4.
-                </video>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
-
     </div>
   );
 }
 
-// 3. Muse AI Chat Studio Component
-function ChatStudioTab() {
-  const [messages, setMessages] = useState([
-    { role: 'assistant', text: '👋 Xin chào! Tôi là Meta Muse AI (Hatch). Bạn muốn sáng tạo nội dung, kịch bản hay tạo ảnh/video gì hôm nay?' }
+// 4. Muse AI Chat Studio Component (With Multi-Thread Support & Persistent State)
+function ChatStudioTab({ addToast }) {
+  const [threads, setThreads] = useState([
+    {
+      id: 'thread-default',
+      title: 'Đoạn chat #1',
+      messages: [
+        { role: 'assistant', text: '👋 Xin chào! Tôi là Meta Muse AI (Hatch). Bạn muốn sáng tạo nội dung, kịch bản hay tạo ảnh/video gì hôm nay?' }
+      ]
+    }
   ]);
+  const [activeThreadId, setActiveThreadId] = useState('thread-default');
+  const [editingThreadId, setEditingThreadId] = useState(null);
+  const [editTitleText, setEditTitleText] = useState('');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [threadPage, setThreadPage] = useState(1);
+  const threadsPerPage = 5;
+
   const [prompt, setPrompt] = useState('');
-  const [file, setFile] = useState('');
+  const [attachedFiles, setAttachedFiles] = useState([]); // Array of { id, name, previewUrl, url, filePath, isUploading }
   const [loading, setLoading] = useState(false);
+  const [creatingThread, setCreatingThread] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  // Active thread helper
+  const activeThread = threads.find(t => t.id === activeThreadId) || threads[0];
+  const messages = activeThread ? activeThread.messages : [];
+
+  // Pagination calculation
+  const totalThreadPages = Math.ceil(threads.length / threadsPerPage) || 1;
+  const currentThreads = threads.slice((threadPage - 1) * threadsPerPage, threadPage * threadsPerPage);
+
+  const updateActiveMessages = (updater) => {
+    setThreads(prev => prev.map(t => {
+      if (t.id === activeThreadId) {
+        const nextMsgs = typeof updater === 'function' ? updater(t.messages) : updater;
+        return { ...t, messages: nextMsgs };
+      }
+      return t;
+    }));
+  };
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Edit thread title helpers
+  const startEditThread = (t, e) => {
+    if (e) e.stopPropagation();
+    setEditingThreadId(t.id);
+    setEditTitleText(t.title);
+  };
+
+  const saveEditThread = (threadId) => {
+    if (!editTitleText.trim()) {
+      setEditingThreadId(null);
+      return;
+    }
+    const newTitle = editTitleText.trim();
+    setThreads(prev => prev.map(t => t.id === threadId ? { ...t, title: newTitle } : t));
+    setEditingThreadId(null);
+  };
+
+  // Delete sub-chat thread helper
+  const handleDeleteThread = (threadId, e) => {
+    if (e) e.stopPropagation();
+    setThreads(prev => {
+      const filtered = prev.filter(t => t.id !== threadId);
+      if (filtered.length === 0) {
+        const defaultId = `thread-${Date.now()}`;
+        setActiveThreadId(defaultId);
+        return [{
+          id: defaultId,
+          title: 'Đoạn chat #1',
+          messages: [
+            { role: 'assistant', text: '👋 Xin chào! Tôi là Meta Muse AI (Hatch). Bạn muốn sáng tạo nội dung, kịch bản hay tạo ảnh/video gì hôm nay?' }
+          ]
+        }];
+      }
+      if (activeThreadId === threadId) {
+        setActiveThreadId(filtered[0].id);
+      }
+      return filtered;
+    });
+  };
+
+  // Create new Muse thread on backend and sync UI thread
+  const handleCreateNewThread = async () => {
+    setCreatingThread(true);
+
+    try {
+      const res = await fetch('/v1/chat/new', { method: 'POST' });
+      const data = await res.json();
+
+      const newId = `thread-${Date.now()}`;
+      const newTitle = `Đoạn chat #${threads.length + 1}`;
+      const initialMsgs = [
+        { role: 'assistant', text: `✨ ${newTitle} đã được tạo và đồng bộ thành công với https://muse.ai/thread/new! Bạn có thể bắt đầu prompt chủ đề mới tại đây.` }
+      ];
+
+      setThreads(prev => [...prev, { id: newId, title: newTitle, messages: initialMsgs }]);
+      setActiveThreadId(newId);
+      setThreadPage(Math.ceil((threads.length + 1) / threadsPerPage));
+      setPrompt('');
+      setAttachedFiles([]);
+      setDropdownOpen(false);
+    } catch (err) {
+      addToast('Lỗi Tạo Chat', err.message, 'error');
+    } finally {
+      setCreatingThread(false);
+    }
+  };
+
+  // Upload single File object to backend /v1/upload
+  const uploadSingleFile = async (fileObj) => {
+    const fileId = Date.now() + Math.random().toString(36).substring(2, 7);
+    const fileName = fileObj.name || `pasted_image_${Date.now()}.png`;
+
+    // Local instant preview blob URL
+    let previewUrl = null;
+    if (fileObj.type && fileObj.type.startsWith('image/')) {
+      try {
+        previewUrl = URL.createObjectURL(fileObj);
+      } catch (e) { }
+    }
+
+    setAttachedFiles(prev => [...prev, {
+      id: fileId,
+      name: fileName,
+      previewUrl,
+      url: null,
+      filePath: null,
+      isUploading: true
+    }]);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64Data = e.target.result;
+        const res = await fetch('/v1/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: fileName, data: base64Data })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          setAttachedFiles(prev => prev.map(item => item.id === fileId ? {
+            ...item,
+            name: data.originalName || fileName,
+            filePath: data.filePath,
+            url: data.url,
+            isUploading: false
+          } : item));
+          addToast('Đã thêm ảnh', `Ảnh: ${fileName}`, 'success');
+        } else {
+          addToast('Lỗi Upload', data.error || 'Upload failed', 'error');
+          setAttachedFiles(prev => prev.filter(item => item.id !== fileId));
+        }
+      };
+      reader.readAsDataURL(fileObj);
+    } catch (err) {
+      addToast('Lỗi Upload', err.message, 'error');
+      setAttachedFiles(prev => prev.filter(item => item.id !== fileId));
+    }
+  };
+
+  const handleFilesAdded = (fileList) => {
+    if (!fileList || fileList.length === 0) return;
+    for (let i = 0; i < fileList.length; i++) {
+      uploadSingleFile(fileList[i]);
+    }
+  };
+
+  // Handle Ctrl+V Clipboard Paste Event (Support Greenshot & Image Paste)
+  const handlePaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf('image') !== -1) {
+        const blob = item.getAsFile();
+        if (blob) {
+          addToast('Clipboard Paste', '📋 Đã phát hiện và dán ảnh từ Greenshot!', 'info');
+          uploadSingleFile(new File([blob], `greenshot_${Date.now()}.png`, { type: blob.type }));
+        }
+      }
+    }
+  };
+
+  const removeFile = (id) => {
+    setAttachedFiles(prev => {
+      const target = prev.find(f => f.id === id);
+      if (target && target.previewUrl) {
+        try { URL.revokeObjectURL(target.previewUrl); } catch { }
+      }
+      return prev.filter(f => f.id !== id);
+    });
+    addToast('Đã xóa', 'Đã gỡ ảnh khỏi danh sách gửi.', 'info');
+  };
+
+  // Drag and Drop listeners over window when active
+  useEffect(() => {
+    const handleWindowDragOver = (e) => {
+      e.preventDefault();
+      setDragging(true);
+    };
+    const handleWindowDragLeave = (e) => {
+      if (e.clientX === 0 && e.clientY === 0) {
+        setDragging(false);
+      }
+    };
+    const handleWindowDrop = (e) => {
+      e.preventDefault();
+      setDragging(false);
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        addToast('Kéo-Thả Ảnh', `📂 Đã thêm ${e.dataTransfer.files.length} ảnh vào hàng gửi!`, 'info');
+        handleFilesAdded(e.dataTransfer.files);
+      }
+    };
+
+    window.addEventListener('dragover', handleWindowDragOver);
+    window.addEventListener('dragleave', handleWindowDragLeave);
+    window.addEventListener('drop', handleWindowDrop);
+
+    return () => {
+      window.removeEventListener('dragover', handleWindowDragOver);
+      window.removeEventListener('dragleave', handleWindowDragLeave);
+      window.removeEventListener('drop', handleWindowDrop);
+    };
+  }, []);
 
   const handleSend = async () => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim() && attachedFiles.length === 0) return;
+    if (attachedFiles.some(f => f.isUploading)) {
+      addToast('Chờ Upload', 'Vui lòng chờ ảnh tải lên hoàn tất...', 'info');
+      return;
+    }
 
-    const userText = prompt.trim() + (file.trim() ? `\n📎 [File: ${file.trim()}]` : '');
-    setMessages(prev => [...prev, { role: 'user', text: userText }]);
+    const fileListStr = attachedFiles.map(f => f.name).join(', ');
+    const userText = prompt.trim() + (attachedFiles.length > 0 ? `\n📎 [Đính kèm ${attachedFiles.length} ảnh: ${fileListStr}]` : '');
+
+    updateActiveMessages(prev => [...prev, { role: 'user', text: userText }]);
     setPrompt('');
+    const filesToSend = attachedFiles.map(f => f.filePath).filter(Boolean);
+    setAttachedFiles([]);
     setLoading(true);
+    addToast('Gửi Prompt', '🚀 Đã gửi câu hỏi & danh sách ảnh tới Meta Muse AI...', 'info');
 
     try {
       const res = await fetch('/v1/chat/completions', {
@@ -359,15 +350,17 @@ function ChatStudioTab() {
         body: JSON.stringify({
           model: 'muse-spark-1.3',
           messages: [{ role: 'user', content: userText }],
-          files: file.trim() ? [file.trim()] : undefined,
+          files: filesToSend.length > 0 ? filesToSend : undefined,
           stream: false
         })
       });
       const data = await res.json();
       const reply = data.choices?.[0]?.message?.content || JSON.stringify(data);
-      setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
+      updateActiveMessages(prev => [...prev, { role: 'assistant', text: reply }]);
+      addToast('Muse AI Trả Lời', '✅ Đã nhận phản hồi từ Meta Muse AI!', 'success');
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', text: '❌ Lỗi kết nối: ' + err.message }]);
+      updateActiveMessages(prev => [...prev, { role: 'assistant', text: '❌ Lỗi kết nối: ' + err.message }]);
+      addToast('Lỗi Kết Nối', err.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -375,24 +368,215 @@ function ChatStudioTab() {
 
   return (
     <div className="card">
-      <div className="card-header">
+      <div className="card-header" style={{ flexWrap: 'wrap', gap: '12px', overflow: 'visible' }}>
         <div className="card-title"><i className="ri-chat-3-line"></i> Giao diện Chat & Ra Lệnh cho Meta Muse AI</div>
+
+        {/* Sub-chats Dropdown Menu Selector */}
+        <div className="thread-dropdown-wrapper" ref={dropdownRef}>
+          <button
+            className="thread-dropdown-trigger"
+            onClick={() => setDropdownOpen(prev => !prev)}
+          >
+            <i className="ri-message-3-fill" style={{ color: '#ef4444' }}></i>
+            <span style={{ fontWeight: 700 }}>{activeThread ? activeThread.title : 'Chọn đoạn chat'}</span>
+            <span className="thread-count-badge">{threads.length}</span>
+            <i className={`ri-arrow-down-s-line arrow-icon ${dropdownOpen ? 'open' : ''}`}></i>
+          </button>
+
+          <button
+            className="btn btn-primary"
+            style={{ padding: '8px 16px', fontSize: '13px', whiteSpace: 'nowrap' }}
+            onClick={handleCreateNewThread}
+            disabled={creatingThread}
+          >
+            {creatingThread ? (
+              <><i className="ri-loader-4-line ri-spin"></i> Đang tạo...</>
+            ) : (
+              <><i className="ri-add-line"></i> Tạo đoạn chat mới</>
+            )}
+          </button>
+
+          {/* Dropdown Menu List with Image 2 Pill Style, Scrollbar & Pagination */}
+          {dropdownOpen && (
+            <div className="thread-dropdown-menu">
+              <div className="thread-dropdown-header">
+                <span>📋 DANH SÁCH ĐOẠN CHAT ({threads.length})</span>
+                <span style={{ fontSize: '11px', opacity: 0.7 }}>Double-click hoặc ✏️ để sửa tên</span>
+              </div>
+
+              {/* Scrollable list section */}
+              <div className="thread-dropdown-scroll-list">
+                {currentThreads.map((t) => {
+                  const isActive = t.id === activeThreadId;
+                  return (
+                    <div
+                      key={t.id}
+                      className={`thread-item-card ${isActive ? 'active' : ''}`}
+                      onClick={() => {
+                        setActiveThreadId(t.id);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <div className="thread-item-main">
+                        <i className="ri-chat-1-fill thread-item-icon"></i>
+                        {editingThreadId === t.id ? (
+                          <input
+                            type="text"
+                            className="thread-title-input"
+                            value={editTitleText}
+                            autoFocus
+                            onChange={(e) => setEditTitleText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEditThread(t.id);
+                              if (e.key === 'Escape') setEditingThreadId(null);
+                            }}
+                            onBlur={() => saveEditThread(t.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <span
+                            className="thread-item-title"
+                            onDoubleClick={(e) => startEditThread(t, e)}
+                          >
+                            {t.title}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="thread-item-actions">
+                        <button
+                          className="thread-action-icon-btn"
+                          onClick={(e) => startEditThread(t, e)}
+                          title="Sửa tên đoạn chat"
+                        >
+                          <i className="ri-edit-line"></i>
+                        </button>
+
+                        {threads.length > 1 && (
+                          <button
+                            className="thread-action-icon-btn delete"
+                            onClick={(e) => handleDeleteThread(t.id, e)}
+                            title="Xóa đoạn chat này"
+                          >
+                            <i className="ri-close-line"></i>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Pagination bar */}
+              {totalThreadPages > 1 && (
+                <div className="thread-pagination-bar">
+                  <button
+                    className="thread-page-btn"
+                    disabled={threadPage <= 1}
+                    onClick={(e) => { e.stopPropagation(); setThreadPage(p => Math.max(1, p - 1)); }}
+                  >
+                    <i className="ri-arrow-left-s-line"></i> Prev
+                  </button>
+                  <span className="thread-page-text">Trang {threadPage} / {totalThreadPages}</span>
+                  <button
+                    className="thread-page-btn"
+                    disabled={threadPage >= totalThreadPages}
+                    onClick={(e) => { e.stopPropagation(); setThreadPage(p => Math.min(totalThreadPages, p + 1)); }}
+                  >
+                    Next <i className="ri-arrow-right-s-line"></i>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="chat-history">
         {messages.map((m, i) => (
           <div key={i} className={`chat-msg ${m.role}`}>{m.text}</div>
         ))}
-        {loading && <div className="chat-msg assistant"><i className="ri-loader-4-line ri-spin"></i> Muse AI đang trả lời...</div>}
+        {loading && <div className="chat-msg assistant"><i className="ri-loader-4-line ri-spin"></i> Muse AI đang xử lý & trả lời...</div>}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
-        <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Nhập câu hỏi hoặc câu lệnh cho Muse AI..." rows="3"></textarea>
-        
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <input type="text" value={file} onChange={e => setFile(e.target.value)} placeholder="Đường dẫn file đính kèm (ảnh/video)..." style={{ width: '360px' }} />
-          <button className="btn btn-primary" onClick={handleSend} disabled={loading}>
-            <i className="ri-send-plane-fill"></i> Gửi Prompt tới Muse AI
+      {/* Integrated Chat Input Box (Exact Design from Image 2) */}
+      <div className={`chat-input-card-v2 ${dragging ? 'dragging' : ''}`}>
+        {dragging && (
+          <div className="drag-overlay-banner">
+            <i className="ri-upload-cloud-2-line"></i>
+            <span>Thả các file ảnh vào đây để thêm vào danh sách hàng gửi!</span>
+          </div>
+        )}
+
+        {/* Thumbnail Row matching Image 2 */}
+        {attachedFiles.length > 0 && (
+          <div className="thumb-row-v2">
+            {attachedFiles.map((f) => (
+              <div key={f.id} className="thumb-card-v2">
+                {f.previewUrl || f.url ? (
+                  <img src={f.previewUrl || f.url} className="thumb-img-v2" alt={f.name} />
+                ) : f.isUploading ? (
+                  <div className="thumb-loading-spin"><i className="ri-loader-4-line ri-spin"></i></div>
+                ) : (
+                  <div className="thumb-fallback"><i className="ri-image-line"></i></div>
+                )}
+                {f.isUploading && (
+                  <div className="thumb-loading-overlay">
+                    <i className="ri-loader-4-line ri-spin"></i>
+                  </div>
+                )}
+                <button
+                  className="thumb-close-btn-v2"
+                  onClick={(e) => { e.stopPropagation(); removeFile(f.id); }}
+                  title="Xóa ảnh"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Bottom Bar: [+] [Nhắn tin...] [Send ↑] */}
+        <div className="chat-input-bottom-row">
+          <input
+            type="file"
+            ref={fileInputRef}
+            multiple
+            accept="image/*,video/*"
+            style={{ display: 'none' }}
+            onChange={(e) => handleFilesAdded(e.target.files)}
+          />
+          <button
+            className="attach-plus-btn"
+            onClick={() => fileInputRef.current && fileInputRef.current.click()}
+            title="Đính kèm ảnh hoặc file"
+          >
+            +
+          </button>
+
+          <textarea
+            className="chat-textarea-v2"
+            value={prompt}
+            onChange={e => setPrompt(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            onPaste={handlePaste}
+            placeholder="Nhắn tin..."
+            rows="1"
+          ></textarea>
+
+          <button
+            className="chat-send-btn-v2"
+            onClick={handleSend}
+            disabled={loading || attachedFiles.some(f => f.isUploading)}
+            title="Gửi prompt"
+          >
+            {loading ? <i className="ri-loader-4-line ri-spin"></i> : <i className="ri-arrow-up-line"></i>}
           </button>
         </div>
       </div>
@@ -400,8 +584,8 @@ function ChatStudioTab() {
   );
 }
 
-// 4. Media Manager & Downloads Component
-function MediaManagerTab() {
+// 5. Media Manager & Downloads Component
+function MediaManagerTab({ addToast }) {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -411,8 +595,9 @@ function MediaManagerTab() {
       const res = await fetch('/v1/downloads');
       const data = await res.json();
       setFiles(data.files || []);
+      addToast('Làm Mới', 'Đã làm mới danh sách media!', 'info');
     } catch (err) {
-      console.error(err);
+      addToast('Lỗi', err.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -432,30 +617,42 @@ function MediaManagerTab() {
       {loading ? (
         <div style={{ color: 'var(--text-muted)' }}>Đang tải danh sách...</div>
       ) : files.length === 0 ? (
-        <div style={{ color: 'var(--text-muted)' }}>Chưa có file MP4 nào trong thư mục ./downloads</div>
+        <div style={{ color: 'var(--text-muted)' }}>Chưa có file nào trong thư mục ./downloads</div>
       ) : (
         <div className="media-grid">
-          {files.map((f, i) => (
-            <div key={i} className="media-card">
-              <div style={{ background: '#000', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <video src={`/v1/downloads/${encodeURIComponent(f.name)}`} style={{ maxHeight: '100%', maxWidth: '100%' }} controls></video>
+          {files.map((f, i) => {
+            const isImg = f.name.match(/\.(png|jpe?g|webp|gif|svg)$/i);
+            const isVideo = f.name.match(/\.(mp4|webm|mov)$/i);
+            const mediaUrl = `/v1/downloads/${encodeURIComponent(f.name)}`;
+
+            return (
+              <div key={i} className="media-card">
+                <div style={{ background: '#000', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  {isImg ? (
+                    <img src={mediaUrl} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} alt={f.name} />
+                  ) : isVideo ? (
+                    <video src={mediaUrl} style={{ maxHeight: '100%', maxWidth: '100%' }} controls></video>
+                  ) : (
+                    <div style={{ color: 'var(--text-muted)', fontSize: '40px' }}><i className="ri-file-3-line"></i></div>
+                  )}
+                </div>
+                <div className="media-card-body">
+                  <div className="media-card-title">{isImg ? '🖼️' : isVideo ? '🎬' : '📄'} {f.name}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Kích thước: {(f.size / (1024 * 1024)).toFixed(2)} MB</div>
+                  <a href={mediaUrl} download className="btn btn-secondary" style={{ marginTop: '6px' }}>
+                    <i className="ri-download-cloud-line"></i> Tải Về File {isImg ? 'Ảnh' : isVideo ? 'Video' : ''}
+                  </a>
+                </div>
               </div>
-              <div className="media-card-body">
-                <div className="media-card-title">🎬 {f.name}</div>
-                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Kích thước: {(f.size / (1024*1024)).toFixed(2)} MB</div>
-                <a href={`/v1/downloads/${encodeURIComponent(f.name)}`} download class="btn btn-secondary" style={{ marginTop: '6px' }}>
-                  <i className="ri-download-cloud-line"></i> Tải Về File MP4
-                </a>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
 
-// 5. System Inspector Component
+// 6. System Inspector Component
 function SystemInspectorTab({ status }) {
   return (
     <div className="grid-2">
@@ -464,19 +661,19 @@ function SystemInspectorTab({ status }) {
           <div className="card-title"><i className="ri-server-line"></i> Thông tin Server & API Endpoints</div>
         </div>
         <p style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>
-          Server đang chạy tại <strong>http://127.0.0.1:8787</strong>.<br/>
+          Server đang chạy tại <strong>http://127.0.0.1:8787</strong>.<br />
           Tích hợp qua MCP Client (Claude Desktop, Cursor) hoặc OpenAI API:
         </p>
 
         <div className="console-box" style={{ minHeight: '140px' }}>
-# OpenAI SDK Base URL:
-http://127.0.0.1:8787/v1
+          # OpenAI SDK Base URL:
+          http://127.0.0.1:8787/v1
 
-# Models:
-muse-spark-1.3, muse
+          # Models:
+          muse-spark-1.3, muse
 
-# Health Check:
-http://127.0.0.1:8787/health
+          # Health Check:
+          http://127.0.0.1:8787/health
         </div>
       </div>
 
@@ -498,29 +695,53 @@ http://127.0.0.1:8787/health
 function App() {
   const [tab, setTab] = useState('video');
   const [status, setStatus] = useState({ browserRunning: false, loggedIn: false, composerReady: false });
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = (title, message, type = 'info') => {
+    const id = Date.now() + Math.random().toString(36).substring(2, 6);
+    setToasts(prev => [...prev, { id, title, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3500);
+  };
+
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
 
   const fetchStatus = async () => {
     try {
       const res = await fetch('/health');
       const data = await res.json();
       setStatus(data);
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => {
     fetchStatus();
     const timer = setInterval(fetchStatus, 15000);
-    return () => clearInterval(timer);
+
+    const preventDefault = (e) => e.preventDefault();
+    window.addEventListener('dragover', preventDefault);
+    window.addEventListener('drop', preventDefault);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('dragover', preventDefault);
+      window.removeEventListener('drop', preventDefault);
+    };
   }, []);
+
 
   return (
     <div>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
       <HeaderNav status={status} />
 
       <div className="main-container">
         <div className="nav-tabs">
           <button className={`tab-btn ${tab === 'video' ? 'active' : ''}`} onClick={() => setTab('video')}>
-            <i className="ri-clapperboard-fill"></i> Remotion Video Studio
+            <i className="ri-clapperboard-fill"></i> Remotion Video Monitor
           </button>
           <button className={`tab-btn ${tab === 'chat' ? 'active' : ''}`} onClick={() => setTab('chat')}>
             <i className="ri-chat-voice-fill"></i> Muse AI Prompt Chat
@@ -533,14 +754,23 @@ function App() {
           </button>
         </div>
 
-        {tab === 'video' && <VideoStudioTab />}
-        {tab === 'chat' && <ChatStudioTab />}
-        {tab === 'media' && <MediaManagerTab />}
-        {tab === 'system' && <SystemInspectorTab status={status} />}
+        {/* Persistent Tab Views (Chat state & prompt history stay intact on tab switch) */}
+        <div style={{ display: tab === 'video' ? 'block' : 'none' }}>
+          <VideoStudioTab />
+        </div>
+        <div style={{ display: tab === 'chat' ? 'block' : 'none' }}>
+          <ChatStudioTab addToast={addToast} />
+        </div>
+        <div style={{ display: tab === 'media' ? 'block' : 'none' }}>
+          <MediaManagerTab addToast={addToast} />
+        </div>
+        <div style={{ display: tab === 'system' ? 'block' : 'none' }}>
+          <SystemInspectorTab status={status} />
+        </div>
       </div>
 
       <footer>
-        <p>🚀 Muse AI & Remotion Video Studio Dashboard • React Component Architecture</p>
+        <p>🚀 FZ Studio Web • Red Mascot Design System • MCP & AI Monitoring Mode</p>
       </footer>
     </div>
   );

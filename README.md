@@ -90,7 +90,12 @@ Một cửa sổ Chrome sẽ mở ra trang `https://muse.ai`. Hãy đăng nhập
 
 ---
 
-## Sử dụng như một MCP server
+## 📁 Cấu Trúc Dự Án & Sơ Đồ Thư Mục
+
+Xem chi tiết sơ đồ tổ chức mã nguồn, thư mục tài nguyên (`downloads/`, `uploads/`, `public/audio/`) và các quy chuẩn lưu trữ tại:
+👉 **[`STRUCTURE.md`](STRUCTURE.md)**
+
+---
 
 ### opencode
 

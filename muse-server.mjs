@@ -206,7 +206,17 @@ async function main() {
 
   if (args.includes('--serve-only')) {
     startShimIfEnabled()
-    return // keep the process alive on the HTTP listener only
+    log('Khởi chạy Chrome Muse AI & Mở Web Studio Dashboard (http://127.0.0.1:8787)...')
+    try {
+      await driver.launch()
+      if (driver.ctx) {
+        const webPage = await driver.ctx.newPage()
+        await webPage.goto(`http://127.0.0.1:${shimPort}/`)
+      }
+    } catch (err) {
+      log('Lưu ý khởi chạy Chrome:', err.message || String(err))
+    }
+    return
   }
 
   const server = buildServer()

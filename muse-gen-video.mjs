@@ -14,7 +14,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TEMPLATE_DIR = path.join(__dirname, "remotion-fierzone-template-main");
+const TEMPLATE_DIR = __dirname;
 const SHIM_URL = process.env.MUSE_SHIM_URL || "http://127.0.0.1:8787/v1";
 
 const args = process.argv.slice(2);
