@@ -1,35 +1,12 @@
+import { DatabaseTransactionExplainer } from "./srcVideo/DatabaseTransactionExplainer/DatabaseTransactionExplainer";
 import { TwoSumHashMapExplainer } from "./srcVideo/TwoSumHashMapExplainer/TwoSumHashMapExplainer";
 import { SosnhDevvBAExplainer } from "./srcVideo/SosnhDevvBAExplainer/SosnhDevvBAExplainer";
 import "./index.css";
 import { Composition } from "remotion";
 import { ExplainerTemplate, explainerTemplateSchema } from "./ExplainerTemplate";
-import { audioManifest as dockerAudio } from "./srcVideo/DockerExplainer/audioData";
-
 export const RemotionRoot: React.FC = () => {
   return (
     <>
-      {/* Default Explainer Topic: Docker */}
-      <Composition
-        id="DockerExplainer"
-        component={() => (
-          <ExplainerTemplate
-            title="Docker là gì?"
-            subtitle="Giải thích trong 50 giây"
-            channelName="FierZone"
-            manifest={dockerAudio as any}
-          />
-        )}
-        durationInFrames={1255}
-        fps={30}
-        width={1080}
-        height={1920}
-        schema={explainerTemplateSchema}
-        defaultProps={{
-          title: "Docker là gì?",
-          subtitle: "Giải thích trong 50 giây",
-          channelName: "FierZone",
-        }}
-      />
     
       <Composition
         id="SosnhDevvBAExplainer"
@@ -56,6 +33,21 @@ export const RemotionRoot: React.FC = () => {
         schema={explainerTemplateSchema}
         defaultProps={{
           title: "TwoSumHashMapExplainer",
+          subtitle: "AI Video Explainer",
+          channelName: "FierZone",
+        }}
+      />
+    
+      <Composition
+        id="DatabaseTransactionExplainer"
+        component={DatabaseTransactionExplainer}
+        durationInFrames={3886}
+        fps={30}
+        width={1080}
+        height={1920}
+        schema={explainerTemplateSchema}
+        defaultProps={{
+          title: "DatabaseTransactionExplainer",
           subtitle: "AI Video Explainer",
           channelName: "FierZone",
         }}

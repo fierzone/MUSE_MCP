@@ -99,13 +99,17 @@ async function main() {
         topicKey = (cleanPrompt.slice(0, 15) || "CustomTopic") + "Explainer";
       }
 
-      const tempJsonPath = path.join(TEMPLATE_DIR, "scripts", "temp-scenes.json");
+      const topicDir = path.join(TEMPLATE_DIR, "src", "srcVideo", topicKey);
+      if (!fs.existsSync(topicDir)) {
+        fs.mkdirSync(topicDir, { recursive: true });
+      }
+      const scenesJsonPath = path.join(topicDir, "scenes.json");
       fs.writeFileSync(
-        tempJsonPath,
+        scenesJsonPath,
         JSON.stringify({ topicKey, scenes: customScenes }, null, 2),
         "utf-8"
       );
-      scenesFile = "scripts/temp-scenes.json";
+      scenesFile = `src/srcVideo/${topicKey}/scenes.json`;
     }
   }
 

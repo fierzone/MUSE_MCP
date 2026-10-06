@@ -118,7 +118,7 @@ export async function generateSpeechToFile(
     edgeTtsModule.default;
 
   const primaryVoice = options?.voice || process.env.EDGE_TTS_VOICE || "vi-VN-NamMinhNeural";
-  const voicesToTry = [primaryVoice, "vi-VN-HoaiMyNeural", "vi-VN-NamMinhNeural", "en-US-AvaNeural"];
+  const voicesToTry = [primaryVoice, "vi-VN-NamMinhNeural", "vi-VN-HoaiMyNeural", "en-US-AvaNeural"];
   const rate = options?.rate || process.env.EDGE_TTS_RATE || "+10%";
   const pitch = options?.pitch || process.env.EDGE_TTS_PITCH || "+0Hz";
   const volume = options?.volume || process.env.EDGE_TTS_VOLUME || "+0%";
@@ -247,7 +247,7 @@ export async function generateTopicVoices(
   // Save manifest metadata
   const manifestData = {
     topic: topicKey,
-    voice: process.env.EDGE_TTS_VOICE || "vi-VN-HoaiMyNeural",
+    voice: process.env.EDGE_TTS_VOICE || "vi-VN-NamMinhNeural",
     rate: process.env.EDGE_TTS_RATE || "+10%",
     totalScenes: scenes.length,
     totalDurationFrames,
@@ -308,7 +308,7 @@ export const audioManifest = ${JSON.stringify(manifestData, null, 2)} as const;
 }
 
 // CLI runner
-if (require.main === module || (process.argv[1] && process.argv[1].endsWith("generate-tts.ts"))) {
+if (process.argv[1] && process.argv[1].endsWith("generate-tts.ts")) {
   const args = process.argv.slice(2);
   const topicArg = args[0] || "DemoTopic";
   const sampleText = args[1] || "Xin chào, đây là video giải thích ngắn về chủ đề công nghệ được tạo bởi Remotion và Edge TTS.";

@@ -27,10 +27,23 @@ Kỹ năng này giúp Claude tự động tạo các video ngắn 50–60 giây 
 - **Ảnh & Tệp đính kèm Upload**: Tất cả ảnh/file được tải lên từ giao diện Web Studio hoặc Prompt Chat BẮT BUỘC lưu đồng thời vào `remotion-fierzone-template-main/src/uploads` và `./uploads` để các component Remotion trong `src/` truy cập trực tiếp.
 - **Video & File Đầu Ra (Downloads)**: Tất cả video MP4 và file media sinh ra từ hệ thống tự động xuất và lưu tập trung duy nhất tại thư mục `./downloads/` (ví dụ: `./downloads/TwoSumHashMapExplainer.mp4`).
 
-### 2.2 Biến môi trường (.env)
-Đảm bảo file `.env` tại thư mục gốc có các biến sau:
+### 2.2 Biến môi trường (.env) & Quy tắc BẮT BUỘC Chọn Giọng Đọc
+
+⚠️ **QUY NGUYÊN TẮC BẮT BUỘC CHO AI**:
+1. **Luôn dùng `ask_question` chọn giọng đọc**: Mỗi khi nhận lệnh sinh video/audio, AI **BẮT BUỘC phải gọi công cụ `ask_question`** để hỏi người dùng chọn giọng đọc mong muốn trước khi sinh file audio TTS.
+2. **Quy tắc 1 Giọng đọc / 1 Video**: Mỗi video **chỉ được sử dụng duy nhất 1 giọng đọc đồng nhất** từ đầu đến cuối.
+   - **Ngoại lệ duy nhất**: Chỉ phân chia nhiều giọng đọc khác nhau trong cùng 1 video nếu kịch bản là **cuộc đối thoại/tranh luận giữa 2 nhân vật** (ví dụ: Dev vs BA, Hỏi & Đáp).
+
+**Các tùy chọn giọng đọc tiêu chuẩn (đưa vào `ask_question`):**
+- `(Recommended) vi-VN-NamMinhNeural` (Nam - Trầm ấm, rõ ràng)
+- `vi-VN-HoaiMyNeural` (Nữ - Truyền cảm, tự nhiên)
+- `en-US-ChristopherNeural` (Nam - Tiếng Anh đĩnh đạc, tự nhiên)
+- `en-US-AvaNeural` (Nữ - Tiếng Anh trẻ trung)
+- `Phân chia giọng đọc riêng theo từng nhân vật (Dành riêng cho kịch bản đối thoại 2 người)`
+
+Cấu hình mẫu trong `.env`:
 ```env
-EDGE_TTS_VOICE=vi-VN-HoaiMyNeural
+EDGE_TTS_VOICE=vi-VN-NamMinhNeural
 EDGE_TTS_RATE=+10%
 EDGE_TTS_PITCH=+0Hz
 EDGE_TTS_VOLUME=+0%
@@ -55,43 +68,40 @@ CHANNEL_NAME="FierZone"
 
 ## 4. Quy trình Tạo Video Khi Người Dùng Yêu Cầu
 
-Khi nhận lệnh: *"Tạo video giải thích về [Chủ đề X]"*, Claude thực hiện tuần tự 5 bước:
+Khi nhận lệnh: *"Tạo video giải thích về [Chủ đề X]"*, thực hiện tuần tự các bước:
 
-### Bước 1: Soạn kịch bản Voiceover 6 cảnh
-Soạn 6 câu thoại súc tích, tự nhiên, đánh trúng tâm lý người xem (mỗi câu 15-25 từ).
+### Bước 0: Hỏi Ý Kiến Chọn Giọng Đọc (Interactive Voice Selection)
+Trước khi khởi tạo hay sinh file audio, AI **BẮT BUỘC phải gọi công cụ `ask_question`** để người dùng lựa chọn giọng đọc mong muốn:
+- `(Recommended) vi-VN-NamMinhNeural` (Nam - Trầm ấm, rõ ràng)
+- `vi-VN-HoaiMyNeural` (Nữ - Truyền cảm, tự nhiên)
+- `en-US-ChristopherNeural` (Nam - Tiếng Anh đĩnh đạc, tự nhiên)
+- `en-US-AvaNeural` (Nữ - Tiếng Anh trẻ trung)
+- `Phân chia giọng đọc riêng theo từng nhân vật (Dành riêng cho kịch bản đối thoại 2 người)`
 
-### Bước 2: Sinh Voiceover với `edge-tts-universal`
-Tạo một script TypeScript (hoặc chạy qua `generate-tts.ts`) để tạo audio vào `public/audio/<TopicName>/`:
-```typescript
-import { generateTopicVoices } from "./scripts/generate-tts";
+### Bước 1: Khởi tạo Thư mục Topic TRƯỚC TIÊN & Lưu `scenes.json`
+1. **Tạo ngay thư mục topic mới**: `src/srcVideo/<TopicName>/`
+2. **Lưu file kịch bản JSON trực tiếp**: Lưu vào `src/srcVideo/<TopicName>/scenes.json`.
+   ⚠️ **TỰ QUY ĐỊNH**: KHÔNG ĐƯỢC tạo các file `.json` tạm ở thư mục gốc hay `scripts/` (như `scripts/temp-scenes.json`). Tất cả tài nguyên phải nằm gọn trong thư mục của topic!
 
-const scenes = [
-  { id: "scene1_hook", text: "..." },
-  { id: "scene2_problem", text: "..." },
-  { id: "scene3_container", text: "..." },
-  { id: "scene4_flow", text: "..." },
-  { id: "scene5_benefits", text: "..." },
-  { id: "scene6_outro", text: "..." },
-];
-
-await generateTopicVoices("<TopicName>", scenes);
+### Bước 2: Sinh Giọng Đọc (TTS Generation)
+Chạy script TTS đọc trực tiếp từ file `scenes.json` trong thư mục topic vừa tạo:
+```bash
+npx tsx scripts/generate-tts.ts --scenesFile src/srcVideo/<TopicName>/scenes.json
 ```
 
 ### Bước 3: Tạo thư mục Component `src/srcVideo/<TopicName>/`
-Tạo cấu trúc component động đầy đủ 6 phân cảnh, bao gồm cả file `scenes.json` và thư mục `audio/` tự đóng gói toàn bộ tài nguyên:
+Tạo cấu trúc component động tự đóng gói toàn bộ tài nguyên của video này:
 ```text
 src/srcVideo/<TopicName>/
-├── <TopicName>.tsx          # Composition chính, chứa BrandHeader và Series 6 phân cảnh
+├── <TopicName>.tsx          # Composition chính, chứa BrandHeader và Series phân cảnh
 ├── audioData.ts             # Lưu metadata frame & audioPath sinh ra từ manifest.json
-├── scenes.json              # Lưu kịch bản phân cảnh JSON của video này (dễ quản lý)
+├── scenes.json              # File kịch bản JSON gốc của topic này
 ├── audio/                   # Thư mục chứa các file voiceover .mp3 & manifest.json của video
 └── scenes/
     ├── Scene1Hook.tsx       # Phân cảnh 1: Hook gây chú ý
-    ├── Scene2Problem.tsx    # Phân cảnh 2: Thách thức / Nỗi đau
-    ├── Scene3Solution.tsx   # Phân cảnh 3: Giải pháp cốt lõi
-    ├── Scene4Flow.tsx       # Phân cảnh 4: Quy trình vận hành
-    ├── Scene5Benefits.tsx   # Phân cảnh 5: Giá trị vượt trội
-    └── Scene6Outro.tsx      # Phân cảnh 6: Tổng kết & Follow
+    ├── Scene2Concept.tsx    # Phân cảnh 2: Khái niệm cốt lõi
+    ├── Scene3...            # Các phân cảnh tiếp theo
+    └── SceneNOutro.tsx      # Phân cảnh cuối: Tổng kết & Follow
 ```
 
 ### Bước 4: Nguyên tắc Code Remotion
@@ -109,10 +119,10 @@ Thêm `<Composition>` vào `src/Root.tsx` với `width={1080}`, `height={1920}`,
 ## 5. Lệnh Kiểm tra & Render (Quản lý Đầu Ra Tập Trung)
 
 - **Xem trước trong Remotion Studio**: `npm run dev` -> Mở [http://localhost:3000](http://localhost:3000).
-- **Kiểm tra ảnh tĩnh (Still)**: `npx remotion still src/index.ts <TopicName> out/preview.png --frame 200`.
+- **Kiểm tra ảnh tĩnh (Still)**: `npx remotion still src/index.ts <TopicName> downloads/preview.png --frame 200`.
 - **Render video MP4 xuất vào `downloads/`**:
   ```bash
-  npx remotion render src/index.ts <TopicName> ../downloads/<TopicName>.mp4
+  npx remotion render src/index.ts <TopicName> downloads/<TopicName>.mp4
   ```
   *(Lưu ý: Video xuất ra luôn được lưu vào thư mục `downloads/` ở gốc workspace để dễ dàng quản lý).*
 

@@ -1,0 +1,101 @@
+{
+  "topic": "DatabaseTransactionExplainer",
+  "voice": "vi-VN-NamMinhNeural",
+  "rate": "+10%",
+  "totalScenes": 10,
+  "totalDurationFrames": 3886,
+  "totalDurationSec": 129.5,
+  "scenes": [
+    {
+      "id": "scene1_hook",
+      "text": "Bạn có bao giờ thắc mắc tại sao khi chuyển tiền, hệ thống phải đảm bảo tiền của bạn trừ đi thì người nhận mới được cộng tiền? Nếu tiền đã trừ nhưng người nhận chưa nhận được thì sao? Đây chính là lúc Transaction xuất hiện.",
+      "audioPath": "audio/DatabaseTransactionExplainer/scene1_hook.mp3",
+      "filePath": "public/audio/DatabaseTransactionExplainer/scene1_hook.mp3",
+      "sizeBytes": 73584,
+      "estimatedDurationSec": 12.26,
+      "durationInFrames": 378
+    },
+    {
+      "id": "scene2_concept",
+      "text": "Transaction, hay giao dịch, là một nhóm các thao tác được Database xem như một đơn vị duy nhất. Nghĩa là hoặc tất cả thao tác đều thành công, hoặc nếu có một thao tác thất bại thì toàn bộ thay đổi sẽ được hoàn tác.",
+      "audioPath": "audio/DatabaseTransactionExplainer/scene2_concept.mp3",
+      "filePath": "public/audio/DatabaseTransactionExplainer/scene2_concept.mp3",
+      "sizeBytes": 87408,
+      "estimatedDurationSec": 14.57,
+      "durationInFrames": 448
+    },
+    {
+      "id": "scene3_example",
+      "text": "Ví dụ, tài khoản A có 10 triệu đồng và muốn chuyển 1 triệu cho tài khoản B đang có 5 triệu. Hệ thống cần thực hiện hai việc: thứ nhất, trừ 1 triệu khỏi tài khoản A. Thứ hai, cộng 1 triệu vào tài khoản B.",
+      "audioPath": "audio/DatabaseTransactionExplainer/scene3_example.mp3",
+      "filePath": "public/audio/DatabaseTransactionExplainer/scene3_example.mp3",
+      "sizeBytes": 71136,
+      "estimatedDurationSec": 11.86,
+      "durationInFrames": 366
+    },
+    {
+      "id": "scene4_no_transaction",
+      "text": "Nhưng hãy tưởng tượng sau khi trừ tiền của A, hệ thống gặp lỗi trước khi cộng tiền cho B. Lúc này A mất 1 triệu, B lại không nhận được gì. Đây là một lỗi rất nghiêm trọng.",
+      "audioPath": "audio/DatabaseTransactionExplainer/scene4_no_transaction.mp3",
+      "filePath": "public/audio/DatabaseTransactionExplainer/scene4_no_transaction.mp3",
+      "sizeBytes": 58176,
+      "estimatedDurationSec": 9.7,
+      "durationInFrames": 301
+    },
+    {
+      "id": "scene5_how_it_solves",
+      "text": "Nếu hai thao tác nằm trong cùng một Transaction, khi cả hai thành công thì Database sẽ Commit, tức là xác nhận toàn bộ thay đổi. Nhưng nếu một thao tác thất bại, Database sẽ Rollback, đưa dữ liệu về trạng thái trước khi Transaction bắt đầu.",
+      "audioPath": "audio/DatabaseTransactionExplainer/scene5_how_it_solves.mp3",
+      "filePath": "public/audio/DatabaseTransactionExplainer/scene5_how_it_solves.mp3",
+      "sizeBytes": 79056,
+      "estimatedDurationSec": 13.18,
+      "durationInFrames": 406
+    },
+    {
+      "id": "scene6_db_example",
+      "text": "Ở Database, Transaction có thể bao gồm nhiều câu lệnh. Ví dụ, câu lệnh đầu tiên trừ tiền tài khoản A, câu lệnh thứ hai cộng tiền cho tài khoản B. Hai câu lệnh này phải cùng thành công.",
+      "audioPath": "audio/DatabaseTransactionExplainer/scene6_db_example.mp3",
+      "filePath": "public/audio/DatabaseTransactionExplainer/scene6_db_example.mp3",
+      "sizeBytes": 74160,
+      "estimatedDurationSec": 12.36,
+      "durationInFrames": 381
+    },
+    {
+      "id": "scene7_on_error",
+      "text": "Nếu câu lệnh thứ hai bị lỗi, chúng ta không Commit mà Rollback. Khi đó thao tác trừ tiền ở câu lệnh đầu tiên cũng bị hoàn tác.",
+      "audioPath": "audio/DatabaseTransactionExplainer/scene7_on_error.mp3",
+      "filePath": "public/audio/DatabaseTransactionExplainer/scene7_on_error.mp3",
+      "sizeBytes": 47808,
+      "estimatedDurationSec": 7.97,
+      "durationInFrames": 250
+    },
+    {
+      "id": "scene8_acid",
+      "text": "Transaction thường được nhắc đến cùng với bốn tính chất ACID. A là Atomicity, nghĩa là tất cả hoặc không gì cả. C là Consistency, dữ liệu phải luôn hợp lệ. I là Isolation, các Transaction không được gây ảnh hưởng sai lệch cho nhau. Và D là Durability, sau khi Commit thì dữ liệu phải được đảm bảo lưu lại.",
+      "audioPath": "audio/DatabaseTransactionExplainer/scene8_acid.mp3",
+      "filePath": "public/audio/DatabaseTransactionExplainer/scene8_acid.mp3",
+      "sizeBytes": 120240,
+      "estimatedDurationSec": 20.04,
+      "durationInFrames": 612
+    },
+    {
+      "id": "scene9_realworld",
+      "text": "Transaction không chỉ dùng cho ngân hàng. Nó còn được sử dụng khi đặt hàng, thanh toán, trừ tồn kho, đặt vé, đăng ký khóa học và rất nhiều nghiệp vụ Backend khác.",
+      "audioPath": "audio/DatabaseTransactionExplainer/scene9_realworld.mp3",
+      "filePath": "public/audio/DatabaseTransactionExplainer/scene9_realworld.mp3",
+      "sizeBytes": 61344,
+      "estimatedDurationSec": 10.22,
+      "durationInFrames": 317
+    },
+    {
+      "id": "scene10_conclusion",
+      "text": "Tóm lại, hãy hiểu Transaction đơn giản như một lời cam kết: tất cả các bước phải cùng thành công. Nếu có bất kỳ bước nào thất bại, mọi thay đổi sẽ được hoàn tác. Đó là lý do Transaction cực kỳ quan trọng trong Backend và Database.",
+      "audioPath": "audio/DatabaseTransactionExplainer/scene10_conclusion.mp3",
+      "filePath": "public/audio/DatabaseTransactionExplainer/scene10_conclusion.mp3",
+      "sizeBytes": 83232,
+      "estimatedDurationSec": 13.87,
+      "durationInFrames": 427
+    }
+  ],
+  "generatedAt": "2026-10-06T08:05:51.291Z"
+}

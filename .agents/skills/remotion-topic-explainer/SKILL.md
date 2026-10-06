@@ -38,11 +38,24 @@ A captivating short video follows the **Hook-Problem-Solution-Value-Outro** fram
 - **Uploaded Assets**: All images and files uploaded via Web Studio or Prompt Chat MUST be saved directly to `src/uploads/` so Remotion components under `src/` can import them seamlessly.
 - **Generated Video & Audio Outputs**: All rendered MP4 videos and output files MUST automatically be exported to `./downloads/` at the root of the workspace.
 
-### 2.2 TTS Voiceover via `.env`
-Ensure `.env` contains:
+### 2.2 Quy tắc BẮT BUỘC về Chọn Giọng Đọc (Interactive Voice Selection)
+
+⚠️ **QUY NGUYÊN TẮC BẮT BUỘC CHO AI**:
+1. **Luôn sử dụng `ask_question` để hỏi người dùng chọn giọng đọc**: Mỗi khi nhận yêu cầu sinh video/audio, AI **BẮT BUỘC phải gọi công cụ `ask_question`** để hiển thị bảng chọn giọng đọc cho người dùng chọn trước khi bắt đầu sinh file audio TTS.
+2. **Quy tắc 1 Giọng đọc / 1 Video**: Mỗi video **chỉ được sử dụng duy nhất 1 giọng đọc đồng nhất** từ đầu đến cuối.
+   - **Ngoại lệ duy nhất**: Chỉ phân chia nhiều giọng đọc khác nhau trong cùng 1 video nếu kịch bản là **cuộc đối thoại/tranh luận giữa 2 nhân vật** (ví dụ: Dev vs BA, Hỏi & Đáp).
+
+**Các tùy chọn giọng đọc tiêu chuẩn (đưa vào `ask_question`):**
+- `(Recommended) vi-VN-NamMinhNeural` (Nam - Trầm ấm, rõ ràng)
+- `vi-VN-HoaiMyNeural` (Nữ - Truyền cảm, tự nhiên)
+- `en-US-ChristopherNeural` (Nam - Tiếng Anh đĩnh đạc, tự nhiên)
+- `en-US-AvaNeural` (Nữ - Tiếng Anh trẻ trung)
+- `Phân chia giọng đọc riêng theo từng nhân vật (Dành cho kịch bản đối thoại 2 người)`
+
+Cấu hình mẫu trong `.env`:
 ```env
-EDGE_TTS_VOICE=vi-VN-HoaiMyNeural    # or vi-VN-NamMinhNeural, en-US-ChristopherNeural
-EDGE_TTS_RATE=+10%                   # +10% to +15% for snappy short video pacing
+EDGE_TTS_VOICE=vi-VN-NamMinhNeural
+EDGE_TTS_RATE=+10%                   # +10% to +15% cho nhịp độ video ngắn dồn dập
 EDGE_TTS_PITCH=+0Hz
 EDGE_TTS_VOLUME=+0%
 EDGE_TTS_OUTPUT_DIR=public/audio
@@ -174,31 +187,55 @@ const d2 = audioManifest.scenes[1].durationInFrames + 3;
 
 ## 4. Quy trình Tạo Video Từng Bước cho Antigravity
 
-Khi nhận được yêu cầu: *"Tạo video giải thích về [Chủ đề X]"*:
+Khi nhận được yêu cầu (prompt) hoặc JSON kịch bản: *"Tạo video giải thích về [Chủ đề X]"*:
 
-### Bước 1: Soạn Kịch bản (Scripting)
-1. Xác định 6 phân cảnh (Hook, Problem, Concept 1, Concept 2, Impact, Outro).
-2. Viết lời thoại tiếng Việt tự nhiên, súc tích, câu ngắn (mỗi cảnh 15-30 từ).
+### Bước 0: Hỏi Ý Kiến Chọn Giọng Đọc (Interactive Voice Selection)
+Trước khi khởi tạo hay sinh file audio, AI **BẮT BUỘC phải gọi công cụ `ask_question`** để người dùng lựa chọn giọng đọc mong muốn:
+- `(Recommended) vi-VN-NamMinhNeural` (Nam - Trầm ấm, rõ ràng)
+- `vi-VN-HoaiMyNeural` (Nữ - Truyền cảm, tự nhiên)
+- `en-US-ChristopherNeural` (Nam - Tiếng Anh đĩnh đạc, tự nhiên)
+- `en-US-AvaNeural` (Nữ - Tiếng Anh trẻ trung)
+- `Phân chia giọng đọc riêng theo từng nhân vật (Dành riêng cho kịch bản đối thoại 2 người)`
+
+> 📌 **Lưu ý**: Mỗi video chỉ sử dụng **1 giọng đọc duy nhất** ngoại trừ trường hợp kịch bản là đối thoại/tranh luận giữa 2 nhân vật.
+
+### Bước 1: Khởi tạo Thư mục Topic TRƯỚC TIÊN & Lưu `scenes.json`
+1. **Tạo ngay thư mục topic mới**: `src/srcVideo/<TopicName>/`
+2. **Lưu file kịch bản JSON trực tiếp**: Lưu vào `src/srcVideo/<TopicName>/scenes.json`.
+   ⚠️ **TỰ QUY ĐỊNH**: KHÔNG ĐƯỢC tạo các file `.json` tạm ở thư mục gốc hay `scripts/` (như `scripts/temp-scenes.json`). Tất cả tài nguyên phải nằm gọn trong thư mục của topic!
+
+```json
+{
+  "topicKey": "<TopicName>",
+  "scenes": [
+    { "id": "scene1_hook", "text": "Lời thoại cảnh 1..." },
+    { "id": "scene2_concept", "text": "Lời thoại cảnh 2..." }
+  ]
+}
+```
 
 ### Bước 2: Sinh Giọng Đọc (TTS Generation)
-1. Tạo script TTS tạm hoặc gọi trực tiếp `scripts/generate-tts.ts` cho topic đó.
-2. Lấy danh sách thời lượng frame thực tế từ `manifest.json`.
+Chạy script TTS đọc trực tiếp từ file `scenes.json` vừa tạo trong thư mục topic với giọng đọc đã được chọn:
+```bash
+npx tsx scripts/generate-tts.ts --scenesFile src/srcVideo/<TopicName>/scenes.json
+```
+Script sẽ tự động:
+- Sinh audio giọng đọc vào `public/audio/<TopicName>/` và đồng bộ sang `src/srcVideo/<TopicName>/audio/`.
+- Tạo file `audioData.ts` chứa thời lượng frame chính xác tại `src/srcVideo/<TopicName>/audioData.ts`.
 
-### Bước 3: Tạo Thư mục Code `src/srcVideo/<TopicName>/`
-Cấu trúc thư mục chuẩn tự đóng gói với 6 phân cảnh chuyên biệt, file `scenes.json` và thư mục `audio/`:
+### Bước 3: Tạo Cấu trúc Code Phân cảnh trong `src/srcVideo/<TopicName>/`
+Cấu trúc thư mục tự đóng gói hoàn chỉnh:
 ```text
 src/srcVideo/<TopicName>/
-├── <TopicName>.tsx          # Main composition tập hợp mảng Series 6 phân cảnh
-├── audioData.ts             # Metadata thời lượng audio & frame sinh ra từ manifest.json
-├── scenes.json              # Lưu kịch bản phân cảnh JSON của video này (quản lý tập trung)
-├── audio/                   # Lưu trữ giọng đọc .mp3 & manifest.json tự đóng gói cho topic
+├── <TopicName>.tsx          # Main composition tập hợp Series phân cảnh
+├── audioData.ts             # Metadata thời lượng audio & frame tự động sinh
+├── scenes.json              # File kịch bản JSON gốc của topic này
+├── audio/                   # Lưu trữ giọng đọc .mp3 & manifest.json
 └── scenes/
     ├── Scene1Hook.tsx       # Phân cảnh 1: Hook mở đầu
-    ├── Scene2Problem.tsx    # Phân cảnh 2: Thách thức / Nỗi đau
-    ├── Scene3Solution.tsx   # Phân cảnh 3: Giải pháp cốt lõi
-    ├── Scene4Flow.tsx       # Phân cảnh 4: Quy trình vận hành
-    ├── Scene5Benefits.tsx   # Phân cảnh 5: Giá trị vượt trội
-    └── Scene6Outro.tsx      # Phân cảnh 6: Tổng kết & Follow CTA
+    ├── Scene2Concept.tsx    # Phân cảnh 2: Khái niệm cốt lõi
+    ├── Scene3...            # Các phân cảnh tiếp theo
+    └── SceneNOutro.tsx      # Phân cảnh cuối: Tổng kết & Follow CTA
 ```
 
 ### Bước 4: Đăng ký Composition vào `src/Root.tsx`
@@ -211,14 +248,19 @@ Thêm Composition mới vào `src/Root.tsx`:
   fps={30}
   width={1080}
   height={1920}
-  defaultProps={{}}
+  schema={explainerTemplateSchema}
+  defaultProps={{
+    title: "<TopicName>",
+    subtitle: "AI Video Explainer",
+    channelName: "FierZone",
+  }}
 />
 ```
 
-### Bước 5: Kiểm tra và Render Video
-1. Chạy `npm run lint` để kiểm tra lỗi TypeScript/ESLint.
-2. Render xuất video MP4 trực tiếp vào thư mục `downloads/` ở gốc workspace để quản lý tập trung:
+### Bước 5: Kiểm tra và Render Video MP4
+1. Chạy `npm run lint` hoặc kiểm tra TypeScript để đảm bảo không còn lỗi import.
+2. Render xuất video MP4 trực tiếp vào thư mục `downloads/` ở gốc workspace:
    ```bash
-   npx remotion render src/index.ts <TopicName> ../downloads/<TopicName>.mp4
+   npx remotion render src/index.ts <TopicName> downloads/<TopicName>.mp4
    ```
 
