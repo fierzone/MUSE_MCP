@@ -30,25 +30,80 @@ function VideoStudioTab() {
   const [voice, setVoice] = useState('vi-VN-NamMinhNeural');
   const [rate, setRate] = useState('+10%');
   const [prompt, setPrompt] = useState('');
+  const [scriptJsonText, setScriptJsonText] = useState('');
+  const [generatingScript, setGeneratingScript] = useState(false);
   const [rendering, setRendering] = useState(false);
-  const [logs, setLogs] = useState('🚀 Sẵn sàng render. Bấm "Sinh & Render Video MP4" để bắt đầu...');
+  const [logs, setLogs] = useState('🚀 Sẵn sàng. Nhập chủ đề bất kỳ, bấm "AI Gợi Ý Kịch Bản & Code" để tạo hoặc tự dán kịch bản JSON...');
   const [videoSrc, setVideoSrc] = useState('/v1/downloads/DockerExplainer.mp4');
 
+  // AI Script Generation Handler
+  const handleGenerateScript = async () => {
+    if (!prompt.trim()) {
+      alert('Vui lòng nhập Prompt chủ đề video (ví dụ: "Giải thích Kubernetes trong 6 cảnh ngắn")');
+      return;
+    }
+
+    setGeneratingScript(true);
+    setLogs(`🤖 Muse AI đang biên soạn kịch bản 6 cảnh & Remotion Code cho chủ đề: "${prompt}"...`);
+
+    try {
+      const res = await fetch('/v1/ai-script', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, topicKey: topic !== 'DockerExplainer' && topic !== 'DemoTopic' ? topic : undefined })
+      });
+      const data = await res.json();
+
+      if (data.ok && data.script) {
+        setScriptJsonText(JSON.stringify(data.script, null, 2));
+        if (data.script.topicKey) setTopic(data.script.topicKey);
+        setLogs(prev => prev + `\n\n✅ ĐÃ TẠO XONG KỊCH BẢN CHỦ ĐỀ "${data.script.topicKey || topic}"!\n\nBạn có thể chỉnh sửa trực tiếp nội dung lời thoại bên dưới trước khi bấm Render.`);
+      } else {
+        setLogs(prev => prev + `\n\n❌ LỖI TẠO KỊCH BẢN: ${data.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      setLogs(prev => prev + `\n\n❌ LỖI KẾT NỐI: ${err.message}`);
+    } finally {
+      setGeneratingScript(false);
+    }
+  };
+
+  // Video Render Handler
   const handleGenVideo = async () => {
     setRendering(true);
-    setLogs(`🎬 Khởi tạo Render Video cho topic: "${topic}"\n🏷️ Thương hiệu: "${channelName}"\n🎙️ Voice: ${voice} (${rate})\n⌛ Vui lòng đợi trong giây lát...`);
+    let customScriptObj = null;
+
+    if (scriptJsonText.trim()) {
+      try {
+        customScriptObj = JSON.parse(scriptJsonText.trim());
+      } catch (err) {
+        alert('Cú pháp JSON kịch bản không hợp lệ. Vui lòng kiểm tra lại!');
+        setRendering(false);
+        return;
+      }
+    }
+
+    const currentTopic = customScriptObj?.topicKey || topic;
+    setLogs(`🎬 Khởi tạo Render Video MP4 cho chủ đề: "${currentTopic}"\n🏷️ Thương hiệu: "${channelName}"\n🎙️ Voice: ${voice} (${rate})\n⌛ Vui lòng đợi trong giây lát...`);
 
     try {
       const res = await fetch('/v1/gen-video', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, prompt, channelName, voice, rate })
+        body: JSON.stringify({
+          topic: currentTopic,
+          prompt,
+          channelName,
+          voice,
+          rate,
+          customScript: customScriptObj
+        })
       });
       const data = await res.json();
 
       if (data.ok) {
-        setLogs(prev => prev + `\n\n🎉 RENDER THÀNH CÔNG!\n📁 File xuất tại: ${data.outputPath}\n⏱️ Thời gian: ${data.elapsedSec || 'N/A'}s`);
-        setVideoSrc(`/v1/downloads/${topic}.mp4?t=${Date.now()}`);
+        setLogs(prev => prev + `\n\n🎉 RENDER THÀNH CÔNG VỚI CHỦ ĐỀ MỚI!\n📁 File xuất tại: ${data.outputPath}\n⏱️ Thời gian: ${data.elapsedSec || 'N/A'}s`);
+        setVideoSrc(`/v1/downloads/${currentTopic}.mp4?t=${Date.now()}`);
       } else {
         setLogs(prev => prev + `\n\n❌ LỖI RENDER: ${data.error || 'Unknown error'}`);
       }
@@ -61,18 +116,35 @@ function VideoStudioTab() {
 
   return (
     <div className="grid-3">
-      {/* Controls Card */}
+      {/* Left Controls Card */}
       <div className="card">
         <div className="card-header">
-          <div className="card-title"><i className="ri-magic-line"></i> Cấu hình Render Video</div>
+          <div className="card-title"><i className="ri-magic-line"></i> Tạo & Chỉnh Sửa Kịch Bản Theo Ý Muốn</div>
         </div>
 
         <div className="form-group">
-          <label><i className="ri-price-tag-3-line"></i> Topic / Mẫu Video</label>
-          <select value={topic} onChange={e => setTopic(e.target.value)}>
-            <option value="DockerExplainer">DockerExplainer (Giải thích Docker 60s)</option>
-            <option value="DemoTopic">DemoTopic (Mẫu ngắn thử nghiệm)</option>
-          </select>
+          <label><i className="ri-openai-fill"></i> 1. Nhập Ý Tưởng / Chủ Đề Video Bất Kỳ</label>
+          <textarea
+            value={prompt}
+            onChange={e => setPrompt(e.target.value)}
+            placeholder="Ví dụ: Giải thích khái niệm Kubernetes, 3 mẹo Clean Code, Lập trình Python FastAPI..."
+            rows={3}
+          ></textarea>
+        </div>
+
+        <button className="btn btn-secondary" onClick={handleGenerateScript} disabled={generatingScript}>
+          {generatingScript ? <><i className="ri-loader-4-line ri-spin"></i> Đang Soạn Kịch Bản AI...</> : <><i className="ri-sparkling-fill"></i> 🤖 AI Gợi Ý Kịch Bản & Remotion Code</>}
+        </button>
+
+        <div className="form-group" style={{ marginTop: '12px' }}>
+          <label><i className="ri-edit-code-line"></i> 2. Kịch Bản JSON 6 Cảnh (Xem & Sửa Tự Do)</label>
+          <textarea
+            value={scriptJsonText}
+            onChange={e => setScriptJsonText(e.target.value)}
+            placeholder='Bấm nút trên để Muse AI tự sinh kịch bản JSON, hoặc tự dán kịch bản của bạn vào đây...'
+            rows={10}
+            style={{ fontFamily: 'monospace', fontSize: '13px', lineHeight: '1.5' }}
+          ></textarea>
         </div>
 
         <div className="form-group">
@@ -95,17 +167,12 @@ function VideoStudioTab() {
           <input type="text" value={rate} onChange={e => setRate(e.target.value)} placeholder="+10%, +15%, +0%" />
         </div>
 
-        <div className="form-group">
-          <label><i className="ri-openai-fill"></i> AI Script Prompt (Tùy chọn)</label>
-          <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Ví dụ: Giải thích khái niệm Kubernetes và lý do tại sao Dev nên dùng trong 6 cảnh ngắn..."></textarea>
-        </div>
-
         <button className="btn btn-primary" onClick={handleGenVideo} disabled={rendering}>
-          {rendering ? <><i className="ri-loader-4-line ri-spin"></i> Đang Render Video...</> : <><i className="ri-movie-2-line"></i> Sinh & Render Video MP4</>}
+          {rendering ? <><i className="ri-loader-4-line ri-spin"></i> Đang Tạo Voice & Render Video MP4...</> : <><i className="ri-movie-2-line"></i> 🎥 Biên Dịch & Render Video MP4 Theo Ý Muốn</>}
         </button>
       </div>
 
-      {/* Right Console & Preview */}
+      {/* Right Column: Console & Player Preview */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div className="grid-2">
           {/* Logs Card */}
@@ -119,7 +186,7 @@ function VideoStudioTab() {
           {/* Video Preview */}
           <div className="card" style={{ alignItems: 'center' }}>
             <div className="card-header" style={{ width: '100%' }}>
-              <div className="card-title"><i className="ri-play-circle-line"></i> Xem Trước Video MP4</div>
+              <div className="card-title"><i className="ri-play-circle-line"></i> Trình Xem Trước Video MP4</div>
             </div>
             <div className="video-preview-box">
               <video key={videoSrc} controls poster="/assets/demo-preview.png">

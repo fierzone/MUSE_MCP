@@ -88,20 +88,35 @@ async function main() {
     process.exit(1);
   }
 
+  let scenesFile = null;
+
   if (promptText) {
     const customScenes = await askMuseForScript(promptText);
     if (customScenes && Array.isArray(customScenes)) {
       console.log(`✅ Received ${customScenes.length} scenes from Muse AI.`);
-      // Update generate script for custom topic if needed
+      if (topicKey === "DockerExplainer") {
+        const cleanPrompt = promptText.replace(/[^a-zA-Z0-9]/g, "");
+        topicKey = (cleanPrompt.slice(0, 15) || "CustomTopic") + "Explainer";
+      }
+
+      const tempJsonPath = path.join(TEMPLATE_DIR, "scripts", "temp-scenes.json");
+      fs.writeFileSync(
+        tempJsonPath,
+        JSON.stringify({ topicKey, scenes: customScenes }, null, 2),
+        "utf-8"
+      );
+      scenesFile = "scripts/temp-scenes.json";
     }
   }
 
   // 1. Generate Voiceover TTS & Frame sync
   console.log(`\n🎙️ Step 1: Generating Edge TTS voiceovers & manifest for topic: "${topicKey}"...`);
-  const ttsScript = path.join(TEMPLATE_DIR, "scripts", "generate-docker-audio.ts");
-  
   const npxCmd = process.platform === "win32" ? "npx.cmd" : "npx";
-  const ttsRes = spawnSync(npxCmd, ["tsx", ttsScript], {
+  const ttsArgs = scenesFile
+    ? ["tsx", "scripts/generate-tts.ts", "--scenesFile", scenesFile]
+    : ["tsx", "scripts/generate-docker-audio.ts"];
+
+  const ttsRes = spawnSync(npxCmd, ttsArgs, {
     cwd: TEMPLATE_DIR,
     stdio: "inherit",
     shell: true,

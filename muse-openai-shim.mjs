@@ -408,13 +408,71 @@ export function startShim({ port = PORT, host = HOST } = {}) {
         }
       }
 
+      // AI Script Generator Route: Generates 6-scene JSON script from prompt
+      if (req.method === 'POST' && url === '/v1/ai-script') {
+        const raw = await readBody(req)
+        let body = {}
+        try { body = JSON.parse(raw || '{}') } catch {}
+
+        const prompt = body.prompt || 'Giải thích công nghệ trong 6 cảnh'
+        const topicKey = body.topicKey || (prompt.replace(/[^a-zA-Z0-9]/g, '').slice(0, 15) || 'Custom') + 'Explainer'
+
+        log(`[ai-script API] Generating script for: "${prompt}"`)
+        const systemPrompt = `Bạn là biên kịch video ngắn Remotion 60s. Viết kịch bản 6 cảnh cho chủ đề.
+Trả về DUY NHẤT một chuỗi JSON object có cấu trúc sau:
+{
+  "topicKey": "${topicKey}",
+  "title": "TIÊU ĐỀ VIDEO",
+  "subtitle": "Phụ đề ngắn",
+  "scenes": [
+    {"id": "scene1_hook", "text": "Lời thoại cảnh 1 (gây chú ý trong 5s)"},
+    {"id": "scene2_problem", "text": "Lời thoại cảnh 2 (nêu vấn đề thực tế)"},
+    {"id": "scene3_container", "text": "Lời thoại cảnh 3 (giải pháp cốt lõi)"},
+    {"id": "scene4_image_dockerfile", "text": "Lời thoại cảnh 4 (quy trình hoạt động)"},
+    {"id": "scene5_benefits", "text": "Lời thoại cảnh 5 (3 lợi ích lớn)"},
+    {"id": "scene6_outro", "text": "Lời thoại cảnh 6 (tổng kết & kêu gọi follow)"}
+  ]
+}`
+
+        try {
+          const cliScript = path.join(__dirname, 'muse-cli.mjs')
+          const childRes = spawnSync(process.execPath, [cliScript, '-s', systemPrompt, '--no-stream', prompt], {
+            cwd: __dirname,
+            encoding: 'utf-8',
+          })
+          const match = (childRes.stdout || '').match(/\{[\s\S]*\}/)
+          if (match) {
+            const scriptData = JSON.parse(match[0])
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+            return res.end(JSON.stringify({ ok: true, script: scriptData }))
+          }
+        } catch (e) {}
+
+        // Fallback default script if offline
+        const fallbackScript = {
+          topicKey,
+          title: prompt.toUpperCase(),
+          subtitle: 'Giải thích bằng AI',
+          scenes: [
+            { id: 'scene1_hook', text: `Bạn có biết ${prompt} thực chất là gì và tại sao lập trình viên bắt buộc phải biết không?` },
+            { id: 'scene2_problem', text: `Trước đây, việc xử lý ${prompt} thủ công luôn gây ra nhiều rắc rối và mất thời gian.` },
+            { id: 'scene3_container', text: `Giải pháp này đóng gói toàn bộ quy trình giúp bạn triển khai vô cùng dễ dàng và nhanh chóng.` },
+            { id: 'scene4_image_dockerfile', text: `Chỉ với một vài dòng cấu hình đơn giản, bạn có thể tự động hóa mọi thao tác phức tạp.` },
+            { id: 'scene5_benefits', text: `Tiết kiệm tài nguyên gấp 10 lần, tốc độ vượt trội và dễ dàng mở rộng trên mọi môi trường.` },
+            { id: 'scene6_outro', text: `Nắm vững ${prompt} ngay hôm nay để nâng cấp kỹ năng. Nhớ thả tim và follow kênh nhé!` }
+          ]
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+        return res.end(JSON.stringify({ ok: true, script: fallbackScript }))
+      }
+
       // API trigger: Video Generation Engine
       if (req.method === 'POST' && url === '/v1/gen-video') {
         const raw = await readBody(req)
         let body = {}
         try { body = JSON.parse(raw || '{}') } catch {}
 
-        const topic = body.topic || 'DockerExplainer'
+        let topic = body.topic || 'DockerExplainer'
         const prompt = body.prompt || ''
         const channelName = body.channelName || 'FierZone'
         const voice = body.voice || 'vi-VN-NamMinhNeural'
@@ -423,6 +481,13 @@ export function startShim({ port = PORT, host = HOST } = {}) {
         log(`[gen-video API] topic="${topic}" channel="${channelName}" voice="${voice}"`)
         const startTime = Date.now()
         const cliScript = path.join(__dirname, 'muse-gen-video.mjs')
+
+        // If custom script object is provided from UI
+        if (body.customScript && typeof body.customScript === 'object') {
+          const tempJsonPath = path.join(__dirname, 'remotion-fierzone-template-main', 'scripts', 'temp-scenes.json')
+          if (body.customScript.topicKey) topic = body.customScript.topicKey
+          fs.writeFileSync(tempJsonPath, JSON.stringify(body.customScript, null, 2), 'utf-8')
+        }
 
         const cliArgs = ['--topic', topic]
         if (prompt) cliArgs.push('--prompt', prompt)
