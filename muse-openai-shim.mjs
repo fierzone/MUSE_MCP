@@ -176,6 +176,59 @@ function sendError(res, status, message, type = 'invalid_request_error', code = 
   res.end(body)
 }
 
+function buildSmartAiScript(prompt, topicKey) {
+  const pLower = (prompt || '').toLowerCase()
+
+  // 1. Comparison Topic (e.g. "So sánh Dev và BA", "React vs Vue")
+  if (pLower.includes('so sánh') || pLower.includes('vs') || pLower.includes('khác') || pLower.includes('phân biệt')) {
+    return {
+      topicKey,
+      title: prompt.toUpperCase(),
+      subtitle: 'Phân Tích & So Sánh Chi Tiết',
+      scenes: [
+        { id: 'scene1_hook', text: `Bạn đang thắc mắc sự khác biệt cốt lõi trong chủ đề ${prompt}? Hãy cùng giải mã trong 50 giây!` },
+        { id: 'scene2_subject_a', text: `Đầu tiên, vị trí Dev tập trung vào việc thiết kế cấu trúc kỹ thuật, viết mã nguồn và vận hành hệ thống.` },
+        { id: 'scene3_subject_b', text: `Trong khi đó, vị trí BA đóng vai trò cầu nối, phân tích yêu cầu kinh doanh và chuyển hóa thành bài toán.` },
+        { id: 'scene4_similarities', text: `Cả Dev và BA đều làm việc chặt chẽ với nhau để biến ý tưởng sản phẩm thành hiện thực.` },
+        { id: 'scene5_differences', text: `Điểm khác biệt lớn nhất: BA tập trung vào tư duy nghiệp vụ, còn Dev tập trung vào giải pháp công nghệ.` },
+        { id: 'scene6_outro', text: `Hiểu rõ sự khác biệt giúp bạn phối hợp hiệu quả và định hướng sự nghiệp tốt hơn. Nhớ follow kênh nhé!` }
+      ]
+    }
+  }
+
+  // 2. Tutorial / How-To Topic (e.g. "Hướng dẫn học ReactJS", "Cách dùng Git")
+  if (pLower.includes('hướng dẫn') || pLower.includes('cách') || pLower.includes('học') || pLower.includes('bắt đầu')) {
+    return {
+      topicKey,
+      title: prompt.toUpperCase(),
+      subtitle: 'Lộ Trình & Hướng Dẫn Thực Hành',
+      scenes: [
+        { id: 'scene1_hook', text: `Muốn làm chủ ${prompt} một cách nhanh nhất? Đây là quy trình 4 bước cốt lõi bạn không thể bỏ qua!` },
+        { id: 'scene2_step1', text: `Bước 1: Nắm vững nguyên lý cơ bản và chuẩn bị môi trường thực thi chuẩn hóa.` },
+        { id: 'scene3_step2', text: `Bước 2: Xây dựng dự án thực tế đầu tiên để hiểu rõ luồng dữ liệu hoạt động.` },
+        { id: 'scene4_step3', text: `Bước 3: Tối ưu cấu trúc mã nguồn và áp dụng các best practices nâng cao.` },
+        { id: 'scene5_step4', text: `Bước 4: Đóng gói, kiểm thử và sẵn sàng đưa sản phẩm lên môi trường thực tế.` },
+        { id: 'scene6_outro', text: `Áp dụng ngay lộ trình này để nâng cấp trình độ của bạn. Đừng quên thả tim và đăng ký kênh!` }
+      ]
+    }
+  }
+
+  // 3. General Tech Topic
+  return {
+    topicKey,
+    title: prompt.toUpperCase(),
+    subtitle: 'Giải Thích Công Nghệ AI',
+    scenes: [
+      { id: 'scene1_hook', text: `${prompt} đang là chủ đề nhận được sự quan tâm rất lớn từ cộng đồng công nghệ.` },
+      { id: 'scene2_problem', text: `Vấn đề lớn nhất thường gặp phải là sự phức tạp và thiếu định hướng thực hành rõ ràng.` },
+      { id: 'scene3_solution', text: `Bản chất cốt lõi nằm ở việc đơn giản hóa quy trình và tự động hóa các tác vụ.` },
+      { id: 'scene4_execution', text: `Khi áp dụng đúng phương pháp, bạn sẽ kiểm soát toàn bộ hệ thống một cách chủ động.` },
+      { id: 'scene5_benefits', text: `Tăng tốc độ xử lý gấp nhiều lần, hạn chế sai sót và tối ưu hóa hiệu suất tối đa.` },
+      { id: 'scene6_outro', text: `Bạn đã thử áp dụng ${prompt} vào công việc chưa? Hãy để lại ý kiến dưới phần bình luận và follow kênh nhé!` }
+    ]
+  }
+}
+
 // ---------------------------------------------------------------- handler
 
 async function handleChat(req, res, body) {
@@ -418,21 +471,21 @@ export function startShim({ port = PORT, host = HOST } = {}) {
         const topicKey = body.topicKey || (prompt.replace(/[^a-zA-Z0-9]/g, '').slice(0, 15) || 'Custom') + 'Explainer'
 
         log(`[ai-script API] Generating script for: "${prompt}"`)
-        const systemPrompt = `Bạn là biên kịch video ngắn Remotion 60s. Viết kịch bản 6 cảnh cho chủ đề.
-Trả về DUY NHẤT một chuỗi JSON object có cấu trúc sau:
+        const systemPrompt = `Bạn là chuyên gia biên kịch video ngắn 60s cho TikTok/Reels/Shorts. Viết kịch bản 6 cảnh chi tiết, hấp dẫn và nội dung ĐÚNG VỚI CHỦ ĐỀ người dùng yêu cầu: "${prompt}".
+Nếu chủ đề là so sánh (ví dụ: So sánh Dev và BA), cảnh 2 nói về vế 1, cảnh 3 nói về vế 2, cảnh 5 nói về điểm khác biệt cốt lõi.
+Trả về DUY NHẤT một chuỗi JSON hợp lệ (không chứa nhãn markdown \`\`\`json):
 {
   "topicKey": "${topicKey}",
-  "title": "TIÊU ĐỀ VIDEO",
-  "subtitle": "Phụ đề ngắn",
+  "title": "${prompt.toUpperCase()}",
+  "subtitle": "Giải Thích Bằng AI",
   "scenes": [
-    {"id": "scene1_hook", "text": "Lời thoại cảnh 1 (gây chú ý trong 5s)"},
-    {"id": "scene2_problem", "text": "Lời thoại cảnh 2 (nêu vấn đề thực tế)"},
-    {"id": "scene3_container", "text": "Lời thoại cảnh 3 (giải pháp cốt lõi)"},
-    {"id": "scene4_image_dockerfile", "text": "Lời thoại cảnh 4 (quy trình hoạt động)"},
-    {"id": "scene5_benefits", "text": "Lời thoại cảnh 5 (3 lợi ích lớn)"},
-    {"id": "scene6_outro", "text": "Lời thoại cảnh 6 (tổng kết & kêu gọi follow)"}
-  ]
-}`
+    {"id": "scene1_hook", "text": "Lời thoại cảnh 1 gây chú ý trong 5s"},
+    {"id": "scene2_overview", "text": "Lời thoại cảnh 2..."},
+    {"id": "scene3_detail", "text": "Lời thoại cảnh 3..."},
+    {"id": "scene4_analysis", "text": "Lời thoại cảnh 4..."},
+    {"id": "scene5_comparison", "text": "Lời thoại cảnh 5..."},
+    {"id": "scene6_outro", "text": "Lời thoại cảnh 6 tổng kết & kêu gọi follow"}
+  ]}`
 
         try {
           const cliScript = path.join(__dirname, 'muse-cli.mjs')
@@ -448,20 +501,8 @@ Trả về DUY NHẤT một chuỗi JSON object có cấu trúc sau:
           }
         } catch (e) {}
 
-        // Fallback default script if offline
-        const fallbackScript = {
-          topicKey,
-          title: prompt.toUpperCase(),
-          subtitle: 'Giải thích bằng AI',
-          scenes: [
-            { id: 'scene1_hook', text: `Bạn có biết ${prompt} thực chất là gì và tại sao lập trình viên bắt buộc phải biết không?` },
-            { id: 'scene2_problem', text: `Trước đây, việc xử lý ${prompt} thủ công luôn gây ra nhiều rắc rối và mất thời gian.` },
-            { id: 'scene3_container', text: `Giải pháp này đóng gói toàn bộ quy trình giúp bạn triển khai vô cùng dễ dàng và nhanh chóng.` },
-            { id: 'scene4_image_dockerfile', text: `Chỉ với một vài dòng cấu hình đơn giản, bạn có thể tự động hóa mọi thao tác phức tạp.` },
-            { id: 'scene5_benefits', text: `Tiết kiệm tài nguyên gấp 10 lần, tốc độ vượt trội và dễ dàng mở rộng trên mọi môi trường.` },
-            { id: 'scene6_outro', text: `Nắm vững ${prompt} ngay hôm nay để nâng cấp kỹ năng. Nhớ thả tim và follow kênh nhé!` }
-          ]
-        }
+        // Smart fallback script generator based on prompt topic
+        const fallbackScript = buildSmartAiScript(prompt, topicKey)
         res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
         return res.end(JSON.stringify({ ok: true, script: fallbackScript }))
       }

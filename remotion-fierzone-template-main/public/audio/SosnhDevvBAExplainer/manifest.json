@@ -1,0 +1,65 @@
+{
+  "topic": "SosnhDevvBAExplainer",
+  "voice": "vi-VN-HoaiMyNeural",
+  "rate": "+10%",
+  "totalScenes": 6,
+  "totalDurationFrames": 1454,
+  "totalDurationSec": 48.5,
+  "scenes": [
+    {
+      "id": "scene1_hook",
+      "text": "Dev bảo BA chỉ biết vẽ vời, BA bảo Dev chỉ biết cắm đầu code. Ai mới là người gánh team thật sự?",
+      "audioPath": "audio/SosnhDevvBAExplainer/scene1_hook.mp3",
+      "filePath": "public/audio/SosnhDevvBAExplainer/scene1_hook.mp3",
+      "sizeBytes": 38880,
+      "estimatedDurationSec": 6.48,
+      "durationInFrames": 205
+    },
+    {
+      "id": "scene2_problem",
+      "text": "Thực tế đau lòng: không có BA, Dev code 3 tháng rồi khách phán một câu 'đây không phải thứ tôi muốn' – toang cả dự án.",
+      "audioPath": "audio/SosnhDevvBAExplainer/scene2_problem.mp3",
+      "filePath": "public/audio/SosnhDevvBAExplainer/scene2_problem.mp3",
+      "sizeBytes": 38736,
+      "estimatedDurationSec": 6.46,
+      "durationInFrames": 204
+    },
+    {
+      "id": "scene3_container",
+      "text": "BA chính là bộ não phân tích: đào sâu nhu cầu, chốt yêu cầu rõ ràng từng chữ, để mọi dòng code của Dev đều đánh trúng đích.",
+      "audioPath": "audio/SosnhDevvBAExplainer/scene3_container.mp3",
+      "filePath": "public/audio/SosnhDevvBAExplainer/scene3_container.mp3",
+      "sizeBytes": 42336,
+      "estimatedDurationSec": 7.06,
+      "durationInFrames": 222
+    },
+    {
+      "id": "scene4_image_dockerfile",
+      "text": "Cách vận hành hiệu quả: BA viết user story và acceptance criteria, Dev estimate và triển khai, cuối sprint cả hai cùng demo cho khách hàng.",
+      "audioPath": "audio/SosnhDevvBAExplainer/scene4_image_dockerfile.mp3",
+      "filePath": "public/audio/SosnhDevvBAExplainer/scene4_image_dockerfile.mp3",
+      "sizeBytes": 49968,
+      "estimatedDurationSec": 8.33,
+      "durationInFrames": 260
+    },
+    {
+      "id": "scene5_benefits",
+      "text": "Cặp bài trùng này giúp giảm tới một nửa thời gian sửa lỗi, sản phẩm ra đúng hẹn, team không còn cảnh họp cãi nhau nảy lửa.",
+      "audioPath": "audio/SosnhDevvBAExplainer/scene5_benefits.mp3",
+      "filePath": "public/audio/SosnhDevvBAExplainer/scene5_benefits.mp3",
+      "sizeBytes": 53280,
+      "estimatedDurationSec": 8.88,
+      "durationInFrames": 277
+    },
+    {
+      "id": "scene6_outro",
+      "text": "Dev là đôi tay, BA là đôi mắt – thiếu một là dự án đi chệch hướng. Follow kênh để xem thêm nhiều pha so sánh nghề nghiệp cực gắt nhé!",
+      "audioPath": "audio/SosnhDevvBAExplainer/scene6_outro.mp3",
+      "filePath": "public/audio/SosnhDevvBAExplainer/scene6_outro.mp3",
+      "sizeBytes": 55152,
+      "estimatedDurationSec": 9.19,
+      "durationInFrames": 286
+    }
+  ],
+  "generatedAt": "2026-10-06T03:10:21.886Z"
+}
