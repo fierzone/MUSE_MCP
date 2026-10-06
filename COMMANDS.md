@@ -71,8 +71,8 @@ npm run muse -- -f ./README.md "Tóm tắt 3 tính năng quan trọng nhất c�
 ## 3. 🎥 YÊU CẦU MUSE AI TẠO VIDEO TRÊN WEB & TẢI VỀ MÁY
 
 ```bash
-# Bước 1: Ra lệnh cho Muse AI tạo video 9:16 trên web
-npm run muse -- "Tạo video 9:16 hình ảnh một thành phố tương lai rực rỡ đèn neon ban đêm"
+# Bước 1: Ra lệnh cho Muse AI tạo video 9:16 phong cách phim điện ảnh cinematic chân thực
+npm run muse -- "Tạo thước phim điện ảnh cinematic 35mm 4K, góc quay chậm cận cảnh nhân vật bước đi dưới mưa đêm thành phố, ánh đèn đường nhòe mờ (bokeh), chiều sâu trường ảnh điện ảnh chân thực như phim ngắn chiếu rạp"
 
 # Bước 2: Tải video mà Muse AI vừa tạo về thư mục downloads
 node muse-cli.mjs --media --download --dir ./downloads

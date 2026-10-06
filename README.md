@@ -266,7 +266,7 @@ Muse (`muse.ai` / Hatch) hỗ trợ tạo video 9:16 dọc (text-to-video, image
 
 - **Tạo video từ mô tả chữ (Text-to-Video)**:
   ```bash
-  node muse-cli.mjs "Tạo video 9:16 quay cảnh thành phố cyberpunk ban đêm có mưa rơi và đèn neon"
+  node muse-cli.mjs "Tạo thước phim điện ảnh cinematic 35mm 4K, góc quay chậm cận cảnh nhân vật bước đi dưới mưa đêm thành phố, ánh đèn đường nhòe mờ (bokeh), chiều sâu trường ảnh điện ảnh chân thực như phim ngắn chiếu rạp"
   ```
 - **Tạo video từ ảnh mẫu (Image-to-Video / Ref Image)**:
   ```bash

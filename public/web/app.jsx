@@ -31,7 +31,7 @@ function VideoStudioTab() {
   const [voice, setVoice] = useState('vi-VN-NamMinhNeural');
   const [rate, setRate] = useState('+10%');
   const [prompt, setPrompt] = useState('');
-  const [musePrompt, setMusePrompt] = useState('Tạo video 9:16 quay cảnh thành phố tương lai rực rỡ đèn neon ban đêm');
+  const [musePrompt, setMusePrompt] = useState('Tạo thước phim điện ảnh cinematic 35mm 4K, góc quay chậm cận cảnh nhân vật bước đi dưới mưa đêm thành phố, ánh đèn đường nhòe mờ (bokeh), chiều sâu trường ảnh điện ảnh chân thực như phim ngắn chiếu rạp');
   const [attachFile, setAttachFile] = useState('');
   const [scriptJsonText, setScriptJsonText] = useState('');
   const [generatingScript, setGeneratingScript] = useState(false);
@@ -251,9 +251,35 @@ function VideoStudioTab() {
                 <textarea
                   value={musePrompt}
                   onChange={e => setMusePrompt(e.target.value)}
-                  placeholder="Ví dụ: Tạo video 9:16 quay cảnh một góc phố Cyberpunk lung linh ánh đèn neon và mưa rơi..."
+                  placeholder="Ví dụ: Thước phim điện ảnh cinematic 35mm 4K, góc quay chậm cận cảnh nhân vật bước đi dưới mưa đêm, ánh sáng điện ảnh chân thực như phim ngắn chiếu rạp..."
                   rows={4}
                 ></textarea>
+
+                {/* Quick Cinematic Prompt Presets */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', alignSelf: 'center' }}>Gợi ý Style Phim:</span>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ fontSize: '11px', padding: '4px 10px' }}
+                    onClick={() => setMusePrompt('Tạo thước phim điện ảnh cinematic 35mm 4K, góc quay chậm cận cảnh nhân vật bước đi dưới mưa đêm thành phố, ánh đèn đường nhòe mờ (bokeh), chiều sâu trường ảnh điện ảnh chân thực như phim ngắn chiếu rạp.')}
+                  >
+                    🎬 Phim Đêm Mưa Cinematic
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ fontSize: '11px', padding: '4px 10px' }}
+                    onClick={() => setMusePrompt('Tạo video 9:16 dạng phim ngắn điện ảnh, góc quay drone lướt nhẹ qua góc phố cổ kính sáng sớm sương mờ, màu sắc phim Kodak 35mm, ánh sáng tự nhiên tuyệt đẹp, chuyển động mượt mà chân thực.')}
+                  >
+                    🎞️ Phim Ngắn Phố Cổ Kodak 35mm
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ fontSize: '11px', padding: '4px 10px' }}
+                    onClick={() => setMusePrompt('Tạo thước phim cinematic chân thực, nhân vật thực hiện phân cảnh kịch tính trong không gian mờ tối, ánh sáng anamorphic lens, độ tương phản điện ảnh cao như phim bom tấn Hollywood.')}
+                  >
+                    🎥 Phim Kịch Tính Hollywood
+                  </button>
+                </div>
               </div>
 
               <div className="form-group">
