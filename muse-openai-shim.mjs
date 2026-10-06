@@ -325,6 +325,18 @@ export function startShim({ port = PORT, host = HOST } = {}) {
         return res.end(JSON.stringify({ ok: true, ...st, models: MODEL_IDS }))
       }
 
+      // Static files in public/web/ (styles.css, app.jsx, etc.)
+      if (req.method === 'GET' && (url === '/styles.css' || url === '/app.jsx' || url.startsWith('/web/'))) {
+        const fileRel = url.replace(/^\/web\//, '').replace(/^\//, '')
+        const filePath = path.join(__dirname, 'public', 'web', fileRel)
+        if (fs.existsSync(filePath)) {
+          const ext = path.extname(filePath).toLowerCase()
+          const mime = ext === '.css' ? 'text/css; charset=utf-8' : ext === '.jsx' || ext === '.js' ? 'application/javascript; charset=utf-8' : ext === '.html' ? 'text/html; charset=utf-8' : 'application/octet-stream'
+          res.writeHead(200, { 'Content-Type': mime, 'Access-Control-Allow-Origin': '*' })
+          return res.end(fs.readFileSync(filePath))
+        }
+      }
+
       if (req.method === 'GET' && url === '/health') {
         let st = { browserRunning: false, loggedIn: false }
         try { st = await driver.status() } catch {}
