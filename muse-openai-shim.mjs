@@ -25,7 +25,13 @@
  * ------------------------------------------------------------------
  */
 import http from 'node:http'
+import fs from 'node:fs'
+import path from 'node:path'
+import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { driver } from './muse-driver.mjs'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const PORT = Number(process.env.MUSE_SHIM_PORT || 8787)
 const HOST = process.env.MUSE_SHIM_HOST || '127.0.0.1'
@@ -301,11 +307,131 @@ export function startShim({ port = PORT, host = HOST } = {}) {
     }
 
     try {
-      if (req.method === 'GET' && (url === '/health' || url === '/')) {
+      // Web Dashboard UI
+      if (req.method === 'GET' && (url === '/' || url === '/web')) {
+        const accept = req.headers.accept || ''
+        if (accept.includes('text/html') || url === '/web') {
+          const htmlPath = path.join(__dirname, 'public', 'web', 'index.html')
+          if (fs.existsSync(htmlPath)) {
+            const html = fs.readFileSync(htmlPath, 'utf-8')
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
+            return res.end(html)
+          }
+        }
+        // Default JSON status fallback for programmatic GET /
         let st = { browserRunning: false, loggedIn: false }
         try { st = await driver.status() } catch {}
         res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
         return res.end(JSON.stringify({ ok: true, ...st, models: MODEL_IDS }))
+      }
+
+      if (req.method === 'GET' && url === '/health') {
+        let st = { browserRunning: false, loggedIn: false }
+        try { st = await driver.status() } catch {}
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+        return res.end(JSON.stringify({ ok: true, ...st, models: MODEL_IDS }))
+      }
+
+      // Static assets (demo preview images, etc.)
+      if (req.method === 'GET' && url.startsWith('/assets/')) {
+        const fileRel = url.replace(/^\/assets\//, '')
+        const assetPath = path.join(__dirname, 'remotion-fierzone-template-main', 'assets', fileRel)
+        if (fs.existsSync(assetPath)) {
+          const ext = path.extname(assetPath).toLowerCase()
+          const mime = ext === '.png' ? 'image/png' : ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : 'application/octet-stream'
+          res.writeHead(200, { 'Content-Type': mime, 'Access-Control-Allow-Origin': '*' })
+          return res.end(fs.readFileSync(assetPath))
+        }
+      }
+
+      // List downloaded files in ./downloads/
+      if (req.method === 'GET' && url === '/v1/downloads') {
+        const dir = path.join(__dirname, 'downloads')
+        const files = []
+        if (fs.existsSync(dir)) {
+          for (const f of fs.readdirSync(dir)) {
+            const fp = path.join(dir, f)
+            const stat = fs.statSync(fp)
+            if (stat.isFile()) files.push({ name: f, size: stat.size, mtime: stat.mtime })
+          }
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+        return res.end(JSON.stringify({ ok: true, files }))
+      }
+
+      // Serve static video / media files from ./downloads/ with Range header support
+      if (req.method === 'GET' && url.startsWith('/v1/downloads/')) {
+        const filename = decodeURIComponent(url.replace(/^\/v1\/downloads\//, ''))
+        const filePath = path.join(__dirname, 'downloads', filename)
+        if (!fs.existsSync(filePath)) {
+          return sendError(res, 404, 'File not found')
+        }
+
+        const stat = fs.statSync(filePath)
+        const fileSize = stat.size
+        const range = req.headers.range
+
+        if (range) {
+          const parts = range.replace(/bytes=/, '').split('-')
+          const start = parseInt(parts[0], 10)
+          const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1
+          const chunksize = end - start + 1
+          const fileStream = fs.createReadStream(filePath, { start, end })
+
+          res.writeHead(206, {
+            'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+            'Accept-Ranges': 'bytes',
+            'Content-Length': chunksize,
+            'Content-Type': 'video/mp4',
+            'Access-Control-Allow-Origin': '*',
+          })
+          return fileStream.pipe(res)
+        } else {
+          res.writeHead(200, {
+            'Content-Length': fileSize,
+            'Content-Type': filename.endsWith('.mp4') ? 'video/mp4' : 'application/octet-stream',
+            'Access-Control-Allow-Origin': '*',
+          })
+          return fs.createReadStream(filePath).pipe(res)
+        }
+      }
+
+      // API trigger: Video Generation Engine
+      if (req.method === 'POST' && url === '/v1/gen-video') {
+        const raw = await readBody(req)
+        let body = {}
+        try { body = JSON.parse(raw || '{}') } catch {}
+
+        const topic = body.topic || 'DockerExplainer'
+        const prompt = body.prompt || ''
+        const channelName = body.channelName || 'FierZone'
+        const voice = body.voice || 'vi-VN-NamMinhNeural'
+        const rate = body.rate || '+10%'
+
+        log(`[gen-video API] topic="${topic}" channel="${channelName}" voice="${voice}"`)
+        const startTime = Date.now()
+        const cliScript = path.join(__dirname, 'muse-gen-video.mjs')
+
+        const cliArgs = ['--topic', topic]
+        if (prompt) cliArgs.push('--prompt', prompt)
+        if (channelName) cliArgs.push('--channel', channelName)
+
+        const env = { ...process.env, EDGE_TTS_VOICE: voice, EDGE_TTS_RATE: rate, CHANNEL_NAME: channelName }
+        const childRes = spawnSync(process.execPath, [cliScript, ...cliArgs], {
+          cwd: __dirname,
+          env,
+          encoding: 'utf-8',
+        })
+
+        const elapsedSec = Math.round((Date.now() - startTime) / 1000)
+        if (childRes.status === 0) {
+          const outPath = path.join(__dirname, 'downloads', `${topic}.mp4`)
+          res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+          return res.end(JSON.stringify({ ok: true, topic, channelName, outputPath: outPath, elapsedSec, stdout: childRes.stdout }))
+        } else {
+          res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+          return res.end(JSON.stringify({ ok: false, error: childRes.stderr || childRes.stdout || 'Video generation failed' }))
+        }
       }
 
       if (req.method === 'GET' && url === '/v1/models') {

@@ -4,6 +4,19 @@
 
 ---
 
+## 🌐 0. GIAO DIỆN WEB STUDIO DASHBOARD (KHÔNG CẦN GÕ LỆNH)
+
+```bash
+# Khởi chạy Giao diện Web Dashboard trực quan
+npm run web
+# Hoặc:
+npm start
+```
+> 🔗 **Mở trình duyệt tại:** [http://localhost:8787](http://localhost:8787)
+> Giao diện Web cung cấp đầy đủ các tab: **Remotion Video Studio**, **Muse AI Chat Studio**, **Media & Download Manager**, và **System Status Inspector**.
+
+---
+
 ## 1. 🎬 TẠO VIDEO TỰ ĐỘNG (REMOTION + AI VOICE)
 
 ### 🔹 Cách 1: Render video từ chủ đề sẵn có

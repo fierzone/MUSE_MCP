@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚡ Muse AI & Remotion Video Studio Dashboard</title>
+  
+  <!-- Google Fonts & Remix Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet"/>
+  
+  <!-- Vanilla CSS Design Tokens & Glassmorphism Theme -->
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --bg-card-hover: rgba(30, 41, 59, 0.85);
+      --border-color: rgba(56, 189, 248, 0.18);
+      --border-glow: rgba(56, 189, 248, 0.45);
+      --primary: #0ea5e9;
+      --primary-hover: #0284c7;
+      --accent-purple: #8b5cf6;
+      --accent-pink: #ec4899;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius: 16px;
+      --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.05) 0%, transparent 60%);
+      background-attachment: fixed;
+    }
+
+    /* Top Navigation Header */
+    header {
+      height: 72px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+      box-shadow: 0 0 20px rgba(14, 165, 233, 0.5);
+    }
+
+    .brand-text span {
+      background: linear-gradient(135deg, #38bdf8, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 30px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-color);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.offline {
+      background: #ef4444;
+      box-shadow: 0 0 10px #ef4444;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.9); }
+    }
+
+    /* Main Container & Tabs Layout */
+    .main-container {
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 6px;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      width: fit-content;
+    }
+
+    .tab-btn {
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+
+    .tab-btn i { font-size: 18px; }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: white;
+      box-shadow: 0 4px 15px rgba(14, 165, 233, 0.35);
+    }
+
+    /* Tab Contents */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* Glass Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 28px;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: border-color 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: var(--border-glow);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #38bdf8;
+    }
+
+    /* Form Controls */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(7, 9, 14, 0.7);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      color: var(--text-main);
+      font-size: 15px;
+      outline: none;
+      transition: all 0.25s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 14px 24px;
+      border-radius: 12px;
+      border: none;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.25s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+      color: white;
+      box-shadow: 0 6px 20px rgba(14, 165, 233, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(14, 165, 233, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.8);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(51, 65, 85, 0.9);
+      border-color: var(--primary);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+    }
+
+    /* Terminal Logs Box */
+    .console-box {
+      background: #020408;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      color: #38bdf8;
+      min-height: 220px;
+      max-height: 380px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    /* Video Player & Gallery */
+    .video-preview-box {
+      width: 100%;
+      aspect-ratio: 9/16;
+      max-height: 520px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000;
+      border: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    .video-preview-box video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .media-card {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.25s ease;
+    }
+
+    .media-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--primary);
+    }
+
+    .media-card-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .media-card-title {
+      font-size: 15px;
+      font-weight: 700;
+      word-break: break-all;
+    }
+
+    /* Chat Messages Box */
+    .chat-history {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 320px;
+      max-height: 480px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    .chat-msg {
+      padding: 14px 18px;
+      border-radius: 14px;
+      max-width: 85%;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    .chat-msg.user {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      align-self: flex-end;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-msg.assistant {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid var(--border-color);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 14px;
+      border-top: 1px solid var(--border-color);
+      background: rgba(7, 9, 14, 0.9);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Bar -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon"><i class="ri-video-sparkline-fill"></i></div>
+      <div class="brand-text">MUSE <span>STUDIO WEB</span></div>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="status-badge">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Đang kết nối...</span>
+      </div>
+      <button class="btn btn-secondary" onclick="checkStatus()"><i class="ri-refresh-line"></i> Reload Status</button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <div class="main-container">
+    
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('video-tab')"><i class="ri-clapperboard-fill"></i> Remotion Video Studio</button>
+      <button class="tab-btn" onclick="switchTab('chat-tab')"><i class="ri-chat-voice-fill"></i> Muse AI Prompt Chat</button>
+      <button class="tab-btn" onclick="switchTab('media-tab')"><i class="ri-folder-video-fill"></i> Media & Downloads</button>
+      <button class="tab-btn" onclick="switchTab('system-tab')"><i class="ri-settings-4-fill"></i> System & API Info</button>
+    </div>
+
+    <!-- TAB 1: REMOTION AI VIDEO STUDIO -->
+    <div id="video-tab" class="tab-content active">
+      <div class="grid-3">
+        
+        <!-- Left Column: Controls -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="ri-magic-line"></i> Cấu hình Render Video</div>
+          </div>
+
+          <div class="form-group">
+            <label><i class="ri-price-tag-3-line"></i> Topic / Mẫu Video</label>
+            <select id="topicSelect">
+              <option value="DockerExplainer" selected>DockerExplainer (Giải thích Docker 60s)</option>
+              <option value="DemoTopic">DemoTopic (Mẫu ngắn thử nghiệm)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label><i class="ri-flag-2-line"></i> Thương hiệu Kênh (Brand Header)</label>
+            <input type="text" id="channelNameInput" value="FierZone" placeholder="Ví dụ: FierZone, Cường IT..." />
+          </div>
+
+          <div class="form-group">
+            <label><i class="ri-mic-line"></i> Giọng đọc AI (Edge TTS)</label>
+            <select id="voiceSelect">
+              <option value="vi-VN-NamMinhNeural" selected>vi-VN-NamMinhNeural (Nam - Trầm ấm)</option>
+              <option value="vi-VN-HoaiMyNeural">vi-VN-HoaiMyNeural (Nữ - Truyền cảm)</option>
+              <option value="en-US-ChristopherNeural">en-US-ChristopherNeural (Nam tiếng Anh)</option>
+              <option value="en-US-JennyNeural">en-US-JennyNeural (Nữ tiếng Anh)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label><i class="ri-speed-line"></i> Tốc độ đọc (Rate)</label>
+            <input type="text" id="rateInput" value="+10%" placeholder="+10%, +15%, +0%" />
+          </div>
+
+          <div class="form-group">
+            <label><i class="ri-openai-fill"></i> AI Script Prompt (Tùy chọn)</label>
+            <textarea id="aiPromptInput" placeholder="Ví dụ: Giải thích khái niệm Kubernetes và lý do tại sao Dev nên dùng trong 6 cảnh ngắn..."></textarea>
+          </div>
+
+          <button class="btn btn-primary" id="btnGenVideo" onclick="generateVideo()">
+            <i class="ri-movie-2-line"></i> Sinh & Render Video MP4
+          </button>
+        </div>
+
+        <!-- Right Column: Console & Player Preview -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+          
+          <div class="grid-2">
+            <!-- Render Progress Logs -->
+            <div class="card" style="flex: 1;">
+              <div class="card-header">
+                <div class="card-title"><i class="ri-terminal-box-line"></i> Tiến trình Render & Logs</div>
+              </div>
+              <div class="console-box" id="renderConsole">🚀 Sẵn sàng render. Bấm "Sinh & Render Video MP4" để bắt đầu...</div>
+            </div>
+
+            <!-- Video Player Preview -->
+            <div class="card" style="align-items: center;">
+              <div class="card-header" style="width: 100%;">
+                <div class="card-title"><i class="ri-play-circle-line"></i> Xem Trước Video MP4</div>
+              </div>
+              <div class="video-preview-box">
+                <video id="videoPlayer" controls poster="/assets/demo-preview.png">
+                  <source src="/v1/downloads/DockerExplainer.mp4" type="video/mp4">
+                  Trình duyệt không hỗ trợ phát video MP4.
+                </video>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: MUSE AI PROMPT CHAT STUDIO -->
+    <div id="chat-tab" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="ri-chat-3-line"></i> Giao diện Chat & Ra Lệnh cho Meta Muse AI</div>
+        </div>
+
+        <!-- Chat History -->
+        <div class="chat-history" id="chatHistory">
+          <div class="chat-msg assistant">
+            👋 Xin chào! Tôi là Meta Muse AI (Hatch). Bạn muốn sáng tạo nội dung, kịch bản hay tạo ảnh/video gì hôm nay?
+          </div>
+        </div>
+
+        <!-- Chat Controls -->
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+          <textarea id="chatPromptInput" placeholder="Nhập câu hỏi hoặc câu lệnh cho Muse AI..." rows="3"></textarea>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <input type="text" id="fileAttachInput" placeholder="Đường dẫn file đính kèm (ảnh/video)..." style="width: 320px;" />
+            </div>
+            
+            <button class="btn btn-primary" id="btnSendChat" onclick="sendChatPrompt()">
+              <i class="ri-send-plane-fill"></i> Gửi Prompt tới Muse AI
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: MEDIA & DOWNLOADS -->
+    <div id="media-tab" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="ri-folder-download-line"></i> Danh Sách Video & File Đã Sinh (`./downloads`)</div>
+          <button class="btn btn-secondary" onclick="loadDownloadsList()"><i class="ri-refresh-line"></i> Làm mới danh sách</button>
+        </div>
+
+        <div class="media-grid" id="downloadsGrid">
+          <div style="color: var(--text-muted);">Đang tải danh sách file...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: SYSTEM INFO -->
+    <div id="system-tab" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="ri-server-line"></i> Thông tin Server & API Endpoints</div>
+          </div>
+          <p style="color: var(--text-muted); line-height: 1.6;">
+            Server đang chạy tại <strong>http://127.0.0.1:8787</strong>.<br/>
+            Bạn có thể tích hợp qua MCP Client (Claude Desktop, Cursor) hoặc gọi OpenAI API tương thích:
+          </p>
+
+          <div class="console-box" style="min-height: 140px;">
+# OpenAI SDK Base URL:
+http://127.0.0.1:8787/v1
+
+# Models:
+muse-spark-1.3, muse
+
+# Health Check:
+http://127.0.0.1:8787/health
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="ri-shield-check-line"></i> Trạng thái Chrome Driver</div>
+          </div>
+          <div id="sysDetailsBox" style="font-size: 14px; line-height: 1.8;">
+            Đang tải thông tin chi tiết...
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>🚀 Muse AI & Remotion Video Studio Dashboard • Powered by React, Remotion & Meta Muse AI</p>
+  </footer>
+
+  <!-- Web Application Logic -->
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      event.currentTarget.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'media-tab') loadDownloadsList();
+    }
+
+    async function checkStatus() {
+      const dot = document.getElementById('statusDot');
+      const txt = document.getElementById('statusText');
+      const sysDetails = document.getElementById('sysDetailsBox');
+
+      try {
+        const res = await fetch('/health');
+        const data = await res.json();
+        if (data.ok && data.loggedIn) {
+          dot.classList.remove('offline');
+          txt.innerText = 'Chrome Muse Logged In';
+        } else if (data.ok) {
+          dot.classList.add('offline');
+          txt.innerText = 'Trình duyệt mở nhưng Chưa Login';
+        } else {
+          dot.classList.add('offline');
+          txt.innerText = 'Server Offline';
+        }
+
+        if (sysDetails) {
+          sysDetails.innerHTML = `
+            <p><strong>Browser Running:</strong> ${data.browserRunning ? '🟢 True' : '🔴 False'}</p>
+            <p><strong>Logged In:</strong> ${data.loggedIn ? '🟢 True' : '🔴 False'}</p>
+            <p><strong>Composer Ready:</strong> ${data.composerReady ? '🟢 True' : '🔴 False'}</p>
+            <p><strong>Models Available:</strong> ${(data.models || []).join(', ')}</p>
+          `;
+        }
+      } catch (err) {
+        dot.classList.add('offline');
+        txt.innerText = 'Không kết nối được Server';
+      }
+    }
+
+    async function generateVideo() {
+      const topic = document.getElementById('topicSelect').value;
+      const channel = document.getElementById('channelNameInput').value || 'FierZone';
+      const voice = document.getElementById('voiceSelect').value;
+      const rate = document.getElementById('rateInput').value || '+10%';
+      const prompt = document.getElementById('aiPromptInput').value.trim();
+      const consoleBox = document.getElementById('renderConsole');
+      const btn = document.getElementById('btnGenVideo');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Đang Render Video...';
+      consoleBox.innerText = `🎬 Khởi tạo Render Video cho topic: "${topic}"\n🏷️ Thương hiệu: "${channel}"\n🎙️ Voice: ${voice} (${rate})\n⌛ Vui lòng đợi trong giây lát...`;
+
+      try {
+        const res = await fetch('/v1/gen-video', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic, prompt, channelName: channel, voice, rate })
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          consoleBox.innerText += `\n\n🎉 RENDER THÀNH CÔNG!\n📁 File xuất tại: ${data.outputPath}\n⏱️ Thời gian: ${data.elapsedSec || 'N/A'}s`;
+          
+          // Reload player
+          const player = document.getElementById('videoPlayer');
+          player.src = `/v1/downloads/${topic}.mp4?t=${Date.now()}`;
+          player.play();
+        } else {
+          consoleBox.innerText += `\n\n❌ LỖI RENDER: ${data.error || 'Unknown error'}`;
+        }
+      } catch (err) {
+        consoleBox.innerText += `\n\n❌ LỖI KẾT NỐI: ${err.message}`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ri-movie-2-line"></i> Sinh & Render Video MP4';
+      }
+    }
+
+    async function sendChatPrompt() {
+      const input = document.getElementById('chatPromptInput');
+      const fileInput = document.getElementById('fileAttachInput');
+      const prompt = input.value.trim();
+      const file = fileInput.value.trim();
+      const history = document.getElementById('chatHistory');
+      const btn = document.getElementById('btnSendChat');
+
+      if (!prompt) return;
+
+      // Add user msg
+      const userDiv = document.createElement('div');
+      userDiv.className = 'chat-msg user';
+      userDiv.innerText = prompt + (file ? `\n📎 [File: ${file}]` : '');
+      history.appendChild(userDiv);
+
+      input.value = '';
+      btn.disabled = true;
+
+      // Placeholder assistant msg
+      const assistDiv = document.createElement('div');
+      assistDiv.className = 'chat-msg assistant';
+      assistDiv.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Muse AI đang trả lời...';
+      history.appendChild(assistDiv);
+      history.scrollTop = history.scrollHeight;
+
+      try {
+        const res = await fetch('/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'muse-spark-1.3',
+            messages: [{ role: 'user', content: prompt }],
+            files: file ? [file] : undefined,
+            stream: false
+          })
+        });
+        const data = await res.json();
+        const content = data.choices?.[0]?.message?.content || JSON.stringify(data);
+        assistDiv.innerText = content;
+      } catch (err) {
+        assistDiv.innerText = '❌ Lỗi gửi tin nhắn: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        history.scrollTop = history.scrollHeight;
+      }
+    }
+
+    async function loadDownloadsList() {
+      const grid = document.getElementById('downloadsGrid');
+      grid.innerHTML = '<div style="color: var(--text-muted);">Đang lấy danh sách file...</div>';
+
+      try {
+        const res = await fetch('/v1/downloads');
+        const data = await res.json();
+
+        if (!data.files || data.files.length === 0) {
+          grid.innerHTML = '<div style="color: var(--text-muted);">Chưa có file MP4 nào trong thư mục ./downloads</div>';
+          return;
+        }
+
+        grid.innerHTML = data.files.map(file => `
+          <div class="media-card">
+            <div style="background: #000; height: 180px; display: flex; align-items: center; justify-content: center;">
+              <video src="/v1/downloads/${encodeURIComponent(file.name)}" style="max-height: 100%; max-width: 100%;" controls></video>
+            </div>
+            <div class="media-card-body">
+              <div class="media-card-title">🎬 ${file.name}</div>
+              <div style="font-size: 13px; color: var(--text-muted);">Kích thước: ${(file.size / (1024*1024)).toFixed(2)} MB</div>
+              <a href="/v1/downloads/${encodeURIComponent(file.name)}" download class="btn btn-secondary" style="margin-top: 6px;">
+                <i class="ri-download-cloud-line"></i> Tải Về File MP4
+              </a>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        grid.innerHTML = '<div style="color: #ef4444;">Lỗi tải danh sách file downloads</div>';
+      }
+    }
+
+    // Auto-check status on launch
+    checkStatus();
+    setInterval(checkStatus, 15000);
+  </script>
+</body>
+</html>

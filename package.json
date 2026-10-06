@@ -34,6 +34,7 @@
   },
   "scripts": {
     "start": "node muse-server.mjs",
+    "web": "node muse-server.mjs --serve-only",
     "muse": "node muse-cli.mjs",
     "gen-video": "node muse-gen-video.mjs",
     "selftest": "node muse-server.mjs --self-test",
