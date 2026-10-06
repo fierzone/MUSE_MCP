@@ -102,6 +102,7 @@ export const ${topicKey}: React.FC<${topicKey}Props> = ({
         defaultProps={{
           title: "${topicKey}",
           subtitle: "AI Video Explainer",
+          channelName: "FierZone",
         }}
       />`;
     rootTsx = rootTsx.replace("</>", `${compBlock}\n    </>`);

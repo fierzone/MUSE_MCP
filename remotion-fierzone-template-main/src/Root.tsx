@@ -18,6 +18,7 @@ export const RemotionRoot: React.FC = () => {
         defaultProps={{
           title: "Docker là gì?",
           subtitle: "Giải thích trong 50 giây",
+          channelName: "FierZone",
         }}
       />
     </>

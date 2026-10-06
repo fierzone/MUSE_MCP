@@ -261,6 +261,7 @@ export async function generateTopicVoices(
   const srcTopicDir = path.resolve(process.cwd(), "src", topicKey);
   if (!fs.existsSync(srcTopicDir)) {
     try {
+      // @ts-ignore
       const { createTopicComposition } = await import("./build-topic-composition.mjs");
       createTopicComposition(topicKey, totalDurationFrames);
     } catch (e) {
