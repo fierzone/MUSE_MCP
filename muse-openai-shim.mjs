@@ -176,58 +176,7 @@ function sendError(res, status, message, type = 'invalid_request_error', code = 
   res.end(body)
 }
 
-function buildSmartAiScript(prompt, topicKey) {
-  const pLower = (prompt || '').toLowerCase()
 
-  // 1. Comparison Topic (e.g. "So sánh Dev và BA", "React vs Vue")
-  if (pLower.includes('so sánh') || pLower.includes('vs') || pLower.includes('khác') || pLower.includes('phân biệt')) {
-    return {
-      topicKey,
-      title: prompt.toUpperCase(),
-      subtitle: 'Phân Tích & So Sánh Chi Tiết',
-      scenes: [
-        { id: 'scene1_hook', text: `Bạn đang thắc mắc sự khác biệt cốt lõi trong chủ đề ${prompt}? Hãy cùng giải mã trong 50 giây!` },
-        { id: 'scene2_subject_a', text: `Đầu tiên, vị trí Dev tập trung vào việc thiết kế cấu trúc kỹ thuật, viết mã nguồn và vận hành hệ thống.` },
-        { id: 'scene3_subject_b', text: `Trong khi đó, vị trí BA đóng vai trò cầu nối, phân tích yêu cầu kinh doanh và chuyển hóa thành bài toán.` },
-        { id: 'scene4_similarities', text: `Cả Dev và BA đều làm việc chặt chẽ với nhau để biến ý tưởng sản phẩm thành hiện thực.` },
-        { id: 'scene5_differences', text: `Điểm khác biệt lớn nhất: BA tập trung vào tư duy nghiệp vụ, còn Dev tập trung vào giải pháp công nghệ.` },
-        { id: 'scene6_outro', text: `Hiểu rõ sự khác biệt giúp bạn phối hợp hiệu quả và định hướng sự nghiệp tốt hơn. Nhớ follow kênh nhé!` }
-      ]
-    }
-  }
-
-  // 2. Tutorial / How-To Topic (e.g. "Hướng dẫn học ReactJS", "Cách dùng Git")
-  if (pLower.includes('hướng dẫn') || pLower.includes('cách') || pLower.includes('học') || pLower.includes('bắt đầu')) {
-    return {
-      topicKey,
-      title: prompt.toUpperCase(),
-      subtitle: 'Lộ Trình & Hướng Dẫn Thực Hành',
-      scenes: [
-        { id: 'scene1_hook', text: `Muốn làm chủ ${prompt} một cách nhanh nhất? Đây là quy trình 4 bước cốt lõi bạn không thể bỏ qua!` },
-        { id: 'scene2_step1', text: `Bước 1: Nắm vững nguyên lý cơ bản và chuẩn bị môi trường thực thi chuẩn hóa.` },
-        { id: 'scene3_step2', text: `Bước 2: Xây dựng dự án thực tế đầu tiên để hiểu rõ luồng dữ liệu hoạt động.` },
-        { id: 'scene4_step3', text: `Bước 3: Tối ưu cấu trúc mã nguồn và áp dụng các best practices nâng cao.` },
-        { id: 'scene5_step4', text: `Bước 4: Đóng gói, kiểm thử và sẵn sàng đưa sản phẩm lên môi trường thực tế.` },
-        { id: 'scene6_outro', text: `Áp dụng ngay lộ trình này để nâng cấp trình độ của bạn. Đừng quên thả tim và đăng ký kênh!` }
-      ]
-    }
-  }
-
-  // 3. General Tech Topic
-  return {
-    topicKey,
-    title: prompt.toUpperCase(),
-    subtitle: 'Giải Thích Công Nghệ AI',
-    scenes: [
-      { id: 'scene1_hook', text: `${prompt} đang là chủ đề nhận được sự quan tâm rất lớn từ cộng đồng công nghệ.` },
-      { id: 'scene2_problem', text: `Vấn đề lớn nhất thường gặp phải là sự phức tạp và thiếu định hướng thực hành rõ ràng.` },
-      { id: 'scene3_solution', text: `Bản chất cốt lõi nằm ở việc đơn giản hóa quy trình và tự động hóa các tác vụ.` },
-      { id: 'scene4_execution', text: `Khi áp dụng đúng phương pháp, bạn sẽ kiểm soát toàn bộ hệ thống một cách chủ động.` },
-      { id: 'scene5_benefits', text: `Tăng tốc độ xử lý gấp nhiều lần, hạn chế sai sót và tối ưu hóa hiệu suất tối đa.` },
-      { id: 'scene6_outro', text: `Bạn đã thử áp dụng ${prompt} vào công việc chưa? Hãy để lại ý kiến dưới phần bình luận và follow kênh nhé!` }
-    ]
-  }
-}
 
 // ---------------------------------------------------------------- handler
 
@@ -501,10 +450,8 @@ Trả về DUY NHẤT một chuỗi JSON hợp lệ (không chứa nhãn markdow
           }
         } catch (e) {}
 
-        // Smart fallback script generator based on prompt topic
-        const fallbackScript = buildSmartAiScript(prompt, topicKey)
-        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
-        return res.end(JSON.stringify({ ok: true, script: fallbackScript }))
+        res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+        return res.end(JSON.stringify({ ok: false, error: 'Không thể sinh kịch bản từ Meta Muse AI. Vui lòng kiểm tra lại kết nối Chrome Muse AI.' }))
       }
 
       // API trigger: Video Generation Engine
